@@ -382,7 +382,16 @@ def start_crawling():
         category_list, urls = input_file['category_list'], input_file['urls']
         for category_url, category_name in zip(urls, category_list):
             write_data_to_file(category_name, key)
+    save_remaining_products_days(fetch_day)
     save_bandwidth_status(id=proxy_port_id)
+
+
+def save_remaining_products_days(fetch_day):
+    products = Product.objects.all()
+    for product in products:
+        days = Day.objects.filter(product=product)
+        if len(days) < fetch_day:
+            Day(day_count=fetch_day, product=product).save()
 
 
 def save_bandwidth_status(start=False, id=None):
