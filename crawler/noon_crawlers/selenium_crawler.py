@@ -324,7 +324,7 @@ def initialize_chrome():
 
 
 def start_crawling():
-    input_file_keys = ['UAE', ]
+    input_file_keys = ['UAE', 'KSA']
     fetch_day = get_fetch_day_count()
     proxy_port_id = save_bandwidth_status(start=True)
     data = []
@@ -338,7 +338,7 @@ def start_crawling():
             driver = initialize_chrome()
             status = Status(category_name, category_url, today)
             # scrap first ten pages
-            for x in range(1, 3):
+            for x in range(1, 11):
                 status.pages_scrapped = str(x)
                 driver.get(category_url + '?page=' + str(x))
                 time.sleep(2)
@@ -377,12 +377,12 @@ def start_crawling():
         writer = csv.writer(file)
         for each_product in data:
             writer.writerow(each_product)
+    save_remaining_products_days(fetch_day)
     for key in input_file_keys:
         input_file = get_input_file(key)
         category_list, urls = input_file['category_list'], input_file['urls']
         for category_url, category_name in zip(urls, category_list):
             write_data_to_file(category_name, key)
-    save_remaining_products_days(fetch_day)
     save_bandwidth_status(id=proxy_port_id)
 
 
@@ -541,7 +541,7 @@ def write_data_to_file(category_name, country):
 
     for index in range(0, total_fetched_days):
         if index == (0):
-            data['headers'].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' sold quantity')
+            data['headers'].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' Inventory')
         else:
             data['headers'].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' sold quantity')
             data['headers'].append(
