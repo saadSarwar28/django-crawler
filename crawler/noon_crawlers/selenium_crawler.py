@@ -30,9 +30,14 @@ categories = ['Electronics & Mobiles', 'Beauty & Health', 'Fashion', 'Home & Kit
               'Pet Supplies', 'Stationery & Office Supplies', 'Music, Movies & TV Shows', 'Mahali']
 
 # file ids of google drive
-categories_input_files_ids = {'UAE': '1F1jQMKEGcHOuJndoXAITq1nazXzgtzuy', 'KSA': '1fPK1sAUCkmm-qJuzCXflhBTwNt6qB4-f'}
-output_folder_id = '1H3tPvi0OCCuKoGHFh8NnOyIlBKOKEtTN'
-
+# for dev
+# categories_input_files_ids = {'UAE': '1F1jQMKEGcHOuJndoXAITq1nazXzgtzuy', 'KSA': '1fPK1sAUCkmm-qJuzCXflhBTwNt6qB4-f'}
+# for deploy
+categories_input_files_ids = {'UAE': '1IfX0Z_YVwWfym6s9AA-BdqjMFiGqu3vX', 'KSA': '1VAW5YQd4c_rTiC-comHjbz1nXV66loiB'}
+# for dev
+# output_folder_id = '1H3tPvi0OCCuKoGHFh8NnOyIlBKOKEtTN'
+# for deploy
+output_folder_id = '1HKeRsfQUP8C9rXSspeFI8618OX7CqT-O'
 
 class Status():
     category = ''
