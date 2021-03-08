@@ -1,9 +1,10 @@
 from __future__ import print_function
+from apiclient import errors
 import datetime
 import json
 import random
 import io
-from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver import ActionChains, Proxy
@@ -30,6 +31,7 @@ categories = ['Electronics & Mobiles', 'Beauty & Health', 'Fashion', 'Home & Kit
 
 # file ids of google drive
 categories_input_files_ids = {'UAE': '1F1jQMKEGcHOuJndoXAITq1nazXzgtzuy', 'KSA': '1fPK1sAUCkmm-qJuzCXflhBTwNt6qB4-f'}
+output_folder_id = '1H3tPvi0OCCuKoGHFh8NnOyIlBKOKEtTN'
 
 
 class Status():
@@ -384,6 +386,7 @@ def start_crawling():
         for category_url, category_name in zip(urls, category_list):
             write_data_to_file(category_name, key)
     save_bandwidth_status(id=proxy_port_id)
+    delete_previous_files_from_google_drive()
 
 
 def save_remaining_products_days(fetch_day):
@@ -540,7 +543,7 @@ def write_data_to_file(category_name, country):
     }
 
     for index in range(0, total_fetched_days):
-        if index == (0):
+        if index == 0:
             data['headers'].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' Inventory')
         else:
             data['headers'].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' sold quantity')
@@ -588,14 +591,35 @@ def write_data_to_file(category_name, country):
                 sold_quantity_last_30_day,
             ] + inventory)
 
-    with open(category_name + '-' + fetch_days[0].created_at.strftime('%d') + '.csv', 'w', newline='', encoding='utf-8') as file:
+    file_name = category_name + '-' + fetch_days[0].created_at.strftime('%d') + '.csv'
+    with open(file_name, 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         head = category_name + '-' + country
         writer.writerow([head, ])
         writer.writerow(data['headers'])
         for row in data['data']:
             writer.writerow(row)
-    return
+    upload_files_to_google_drive(file_name)
+
+
+def upload_files_to_google_drive(file_name):
+    folder_id = output_folder_id
+    drive_service = login_google()
+    file_metadata = {
+        'name': file_name,
+        'parents': [folder_id]
+    }
+    media = MediaFileUpload(file_name, mimetype='text/csv', resumable=True)
+    file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    FilesToDelete(file_id=file['id']).save()
+
+
+def delete_previous_files_from_google_drive():
+    drive_service = login_google()
+    files = FilesToDelete.objects.filter(created_at__lt=datetime.datetime.now().date())
+    for file in files:
+        drive_service.files().delete(fileId=file.file_id).execute()
+        file.delete()
 
 
 def log_sku_errors(sku_errors):
