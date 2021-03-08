@@ -521,8 +521,9 @@ def write_data_to_file(category_name, country):
     products = Product.objects.filter(category=category_name)
     fetch_days = FetchDay.objects.filter(month=datetime.datetime.now().date().strftime('%B')).order_by('-created_at')
     total_fetched_days = len(fetch_days)
-    data = {
-        'headers': [
+    data = []
+    data.append(
+        [
             'Category',
             'NOON SKU',
             'Product title',
@@ -538,16 +539,15 @@ def write_data_to_file(category_name, country):
             # 'Sold quantity last day',
             'sold quantity last 7 days',
             'sold quantity last 30 days',
-        ],
-        'data': []
-    }
+        ]
+    )
 
     for index in range(0, total_fetched_days):
         if index == 0:
-            data['headers'].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' Inventory')
+            data[0].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' Inventory')
         else:
-            data['headers'].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' sold quantity')
-            data['headers'].append(
+            data[0].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' sold quantity')
+            data[0].append(
                 'day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' inventory')
 
     for product in products:
@@ -572,7 +572,7 @@ def write_data_to_file(category_name, country):
             sold_quantity_last_30_day = 'Not applicable yet'
         else:
             sold_quantity_last_30_day = product.sold_quantity_last_30_day
-        data['data'].append(
+        data.append(
             [
                 product.category,
                 product.sku,
@@ -591,15 +591,19 @@ def write_data_to_file(category_name, country):
                 sold_quantity_last_30_day,
             ] + inventory)
 
-    file_name = category_name + '-' + fetch_days[0].created_at.strftime('%d') + '.csv'
-    with open(file_name, 'w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        head = category_name + '-' + country
-        writer.writerow([head, ])
-        writer.writerow(data['headers'])
-        for row in data['data']:
-            writer.writerow(row)
+
+    data.insert(0, [category_name + '-' + country, ])
+    file_name = category_name + '-' + fetch_days[0].created_at.strftime('%d') + '.xlsx'
+    df = pd.DataFrame.from_records(data)
+    df.to_excel(file_name)
     upload_files_to_google_drive(file_name)
+    # with open(file_name, 'w', newline='', encoding='utf-8') as file:
+    #     writer = csv.writer(file)
+    #     head = category_name + '-' + country
+    #     writer.writerow([head, ])
+    #     writer.writerow(data['headers'])
+    #     for row in data['data']:
+    #         writer.writerow(row)
 
 
 def upload_files_to_google_drive(file_name):
@@ -609,7 +613,7 @@ def upload_files_to_google_drive(file_name):
         'name': file_name,
         'parents': [folder_id]
     }
-    media = MediaFileUpload(file_name, mimetype='text/csv', resumable=True)
+    media = MediaFileUpload(file_name, mimetype='application/vnd.openxmlformats-', resumable=True)
     file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
     FilesToDelete(file_id=file['id']).save()
 
