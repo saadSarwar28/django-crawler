@@ -31,15 +31,19 @@ categories = ['Electronics & Mobiles', 'Beauty & Health', 'Fashion', 'Home & Kit
 
 # file ids of google drive
 # for dev
-# categories_input_files_ids = {'UAE': '1F1jQMKEGcHOuJndoXAITq1nazXzgtzuy', 'KSA': '1fPK1sAUCkmm-qJuzCXflhBTwNt6qB4-f'}
-# for deploy
-categories_input_files_ids = {'UAE': '1IfX0Z_YVwWfym6s9AA-BdqjMFiGqu3vX', 'KSA': '1VAW5YQd4c_rTiC-comHjbz1nXV66loiB'}
-# for dev
-# output_folder_id = '1H3tPvi0OCCuKoGHFh8NnOyIlBKOKEtTN'
-# for deploy
-output_folder_id = '1HKeRsfQUP8C9rXSspeFI8618OX7CqT-O'
+# output_folder_ids = {
+#     'UAE': '1ERv-klOUUdRFaBuunaUrd28IwA2uEpBK',
+#     'KSA': '1O52z0vNdXNKx3g17DHM3_tQ1_5OHpi3P',
+# }
 
-class Status():
+# for deploy
+output_folder_ids = {
+    'UAE': '1i_bsSeQujS4-DHbCsC_BsqVFhfRbhaBm',
+    'KSA': '1lo4t_0jYNxViTxve8I0TA_T1-EQpxWtY',
+}
+
+
+class Status:
     category = ''
     url = ''
     date = ''
@@ -84,7 +88,20 @@ def open_file():
 
 def get_input_file(file_key):
     service = login_google()
-    request = service.files().get_media(fileId=categories_input_files_ids[file_key])
+    page_token = None
+    query = "name contains '" + file_key + "' and name contains 'Categories'"
+    file_id = ''
+    while True:
+        response = service.files().list(q=query, spaces='drive',
+                                        fields='nextPageToken, files(id, name)', pageToken=page_token).execute()
+        for file in response.get('files', []):
+            file_id = file.get('id')
+            # print('Found file: %s (%s)' % (file.get('name'), file.get('id')))
+        page_token = response.get('nextPageToken', None)
+        if page_token is None:
+            break
+
+    request = service.files().get_media(fileId=file_id)
     fh = io.BytesIO()
     downloader = MediaIoBaseDownload(fh, request)
     done = False
@@ -94,7 +111,6 @@ def get_input_file(file_key):
     fh.seek(0)
     with open(file_key + '.xlsx', 'wb') as out:
         out.write(fh.read())
-
     input_file = pd.read_excel(file_key + '.xlsx', skiprows=[0])
     category_list = input_file['Category Name'].to_list()
     urls = input_file['URL'].to_list()
@@ -330,72 +346,67 @@ def initialize_chrome():
     return driver
 
 
-def start_crawling():
-    input_file_keys = ['UAE', 'KSA']
+def start_crawling(country):
     fetch_day = get_fetch_day_count()
     proxy_port_id = save_bandwidth_status(start=True)
-    data = []
-    for key in input_file_keys:
-        input_file = get_input_file(key)
-        category_list, urls = input_file['category_list'], input_file['urls']
-        status_report = []
-        today = datetime.datetime.now().strftime('%D')
-        for category_url, category_name in zip(urls, category_list):
-            # initializing chrome here means new ip for every 500 SKUs
-            driver = initialize_chrome()
-            status = Status(category_name, category_url, today)
-            # scrap first ten pages
-            for x in range(1, 11):
-                status.pages_scrapped = str(x)
-                driver.get(category_url + '?page=' + str(x))
-                time.sleep(2)
-                # fetching divs of all products
-                try:
-                    product_divs = driver.find_elements_by_class_name('productContainer')
-                    product_skus, product_urls, sku_errors = [], [], []
-                    for div in product_divs:
-                        product_skus.append(div.find_element_by_tag_name('a').get_attribute('id').split('-')[1])
-                        product_urls.append(div.find_element_by_tag_name('a').get_attribute('href'))
-                    for product_sku, product_url in zip(product_skus, product_urls):
-                        try:
-                            data.append(
-                                fetch_products_details(driver, product_sku, product_url, category_name, category_url)
-                            )
-                        except Exception as error:
-                            status.error_in_skus = product_sku + ' - ' + status.error_in_skus
-                            image_name = product_sku + '-' + str(random.random()).split('.')[1][0:8] + '.png'
-                            driver.save_screenshot('../debug/sku/' + image_name)
-                            sku_errors.append({'sku': product_sku, 'error': error, 'error_image': image_name})
-                            driver.close()
-                            driver.switch_to.window(driver.window_handles[0])
-                    log_sku_errors(sku_errors)
-                except Exception as error:
-                    image_name = category_name + '-' + str(random.random()).split('.')[1][0:8] + '.png'
-                    driver.save_screenshot('../debug/' + image_name)
-                    status.error = error
-                    status.error_image = image_name
-            driver.close()
-            status_report.append(status.__dict__)
-        write_status_report(status_report)
-    for each_product in data:
-        save_product_in_database(each_product, fetch_day)
-    # saving raw data as a csv in case of any failure
-    with open('data-fetched.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
+    input_file = get_input_file(country)
+    category_list, urls = input_file['category_list'], input_file['urls']
+    status_report = []
+    today = datetime.datetime.now().strftime('%D')
+    for category_url, category_name in zip(urls, category_list):
+        # initializing chrome here means new ip for every 500 SKUs
+        data = []
+        driver = initialize_chrome()
+        status = Status(category_name, category_url, today)
+        # scrap first ten pages
+        for x in range(1, 2):
+            status.pages_scrapped = str(x)
+            driver.get(category_url + '?page=' + str(x))
+            time.sleep(2)
+            # fetching divs of all products
+            try:
+                product_divs = driver.find_elements_by_class_name('productContainer')
+                product_skus, product_urls, sku_errors = [], [], []
+                for div in product_divs:
+                    product_skus.append(div.find_element_by_tag_name('a').get_attribute('id').split('-')[1])
+                    product_urls.append(div.find_element_by_tag_name('a').get_attribute('href'))
+                for product_sku, product_url in zip(product_skus, product_urls):
+                    try:
+                        data.append(
+                            fetch_products_details(driver, product_sku, product_url, category_name, category_url)
+                        )
+                    except Exception as error:
+                        status.error_in_skus = product_sku + ' - ' + status.error_in_skus
+                        image_name = product_sku + '-' + str(random.random()).split('.')[1][0:8] + '.png'
+                        driver.save_screenshot('../debug/sku/' + image_name)
+                        sku_errors.append({'sku': product_sku, 'error': error, 'error_image': image_name})
+                        driver.close()
+                        driver.switch_to.window(driver.window_handles[0])
+                log_sku_errors(sku_errors)
+            except Exception as error:
+                image_name = category_name + '-' + str(random.random()).split('.')[1][0:8] + '.png'
+                driver.save_screenshot('../debug/' + image_name)
+                status.error = error
+                status.error_image = image_name
+        driver.close()
+        # backup file for each category and day
+        with open(datetime.datetime.today().strftime('%d') + '-data-fetched.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            for each_product in data:
+                writer.writerow(each_product)
         for each_product in data:
-            writer.writerow(each_product)
-    save_remaining_products_days(fetch_day)
-    for key in input_file_keys:
-        input_file = get_input_file(key)
-        category_list, urls = input_file['category_list'], input_file['urls']
-        for category_url, category_name in zip(urls, category_list):
-            write_data_to_file(category_name, key)
+            save_product_in_database(each_product, fetch_day)
+        save_remaining_products_days(category_name, fetch_day)
+        file_name = write_data_to_file(category_name, country)
+        upload_files_to_google_drive(file_name, country)
+        status_report.append(status.__dict__)
+    write_status_report(status_report)
     save_bandwidth_status(id=proxy_port_id)
     delete_previous_files_from_google_drive()
 
 
-def save_remaining_products_days(fetch_day):
-    products = Product.objects.all()
+def save_remaining_products_days(category, fetch_day):
+    products = Product.objects.filter(category=category)
     for product in products:
         days = Day.objects.filter(product=product)
         if len(days) < fetch_day:
@@ -601,7 +612,7 @@ def write_data_to_file(category_name, country):
     file_name = category_name + '-' + fetch_days[0].created_at.strftime('%d') + '.xlsx'
     df = pd.DataFrame.from_records(data)
     df.to_excel(file_name)
-    upload_files_to_google_drive(file_name)
+    return file_name
     # with open(file_name, 'w', newline='', encoding='utf-8') as file:
     #     writer = csv.writer(file)
     #     head = category_name + '-' + country
@@ -611,8 +622,8 @@ def write_data_to_file(category_name, country):
     #         writer.writerow(row)
 
 
-def upload_files_to_google_drive(file_name):
-    folder_id = output_folder_id
+def upload_files_to_google_drive(file_name, country):
+    folder_id = output_folder_ids[country]
     drive_service = login_google()
     file_metadata = {
         'name': file_name,

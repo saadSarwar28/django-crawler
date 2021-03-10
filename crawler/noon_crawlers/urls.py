@@ -3,8 +3,11 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('noon', views.start_noon_crawling, name='start_crawling'),
-    path('write', views.write_data, name='start_crawling'),
-    path('upload', views.upload_files_to_google, name='start_crawling'),
-    path('delete', views.delete_files_from_google, name='start_crawling'),
+    path('uae', views.crawl_uae, name='crawl uae site'),
+    path('ksa', views.crawl_ksa, name='crawl ksa site'),
+    # test functions
+    path('write', views.write_data, name='write data to files'),
+    path('get', views.get_input_files, name='get input files'),
+    path('upload', views.upload_files_to_google, name='upload files to google drive'),
+    path('delete', views.delete_files_from_google, name='delete files from google drive'),
 ]

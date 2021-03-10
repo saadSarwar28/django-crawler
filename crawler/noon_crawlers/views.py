@@ -2,15 +2,17 @@ import threading
 from .models import *
 from django.http import HttpResponse
 from django.shortcuts import render
-from .selenium_crawler import start_crawling
-from .selenium_crawler import write_data_to_file
-from .selenium_crawler import upload_files_to_google_drive
-from .selenium_crawler import delete_previous_files_from_google_drive
+from .selenium_crawler import *
 # Create your views here.
 
 
-def start_noon_crawling(request):
-    start_crawling()
+def crawl_uae(request):
+    start_crawling('UAE')
+    return HttpResponse()
+
+
+def crawl_ksa(request):
+    start_crawling('KSA')
     return HttpResponse()
 
 
@@ -29,4 +31,10 @@ def upload_files_to_google(request):
 def delete_files_from_google(request):
     delete_previous_files_from_google_drive()
     return HttpResponse()
+
+
+def get_input_files(request):
+    print(get_input_file('KSA'))
+    return HttpResponse()
+
 
