@@ -396,17 +396,17 @@ def start_crawling(country):
                 writer.writerow(each_product)
         for each_product in data:
             save_product_in_database(each_product, fetch_day)
-        save_remaining_products_days(category_name, fetch_day)
         file_name = write_data_to_file(category_name, country)
         upload_files_to_google_drive(file_name, country)
         status_report.append(status.__dict__)
+    save_remaining_products_days(fetch_day)
     write_status_report(status_report)
     save_bandwidth_status(id=proxy_port_id)
     delete_previous_files_from_google_drive()
 
 
-def save_remaining_products_days(category, fetch_day):
-    products = Product.objects.filter(category=category)
+def save_remaining_products_days(fetch_day):
+    products = Product.objects.all()
     for product in products:
         days = Day.objects.filter(product=product)
         if len(days) < fetch_day:

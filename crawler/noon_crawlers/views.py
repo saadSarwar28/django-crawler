@@ -16,6 +16,11 @@ def crawl_ksa(request):
     return HttpResponse()
 
 
+def save_remaining_products(request):
+    save_remaining_products_days(2)
+    return HttpResponse()
+
+
 def write_data(request):
     categories = Product.objects.values('category').distinct()
     for category in categories:
