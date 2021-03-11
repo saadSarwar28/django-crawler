@@ -21,6 +21,11 @@ def save_remaining_products(request):
     return HttpResponse()
 
 
+def send_email_gmail(request):
+    send_email('KSA', 10, 4)
+    return HttpResponse()
+
+
 def write_data(request):
     categories = Product.objects.values('category').distinct()
     for category in categories:

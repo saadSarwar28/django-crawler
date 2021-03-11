@@ -1,4 +1,7 @@
 from __future__ import print_function
+
+import smtplib
+from crawler import settings
 from apiclient import errors
 import datetime
 import json
@@ -346,11 +349,12 @@ def initialize_chrome():
     return driver
 
 
-def start_crawling(country):
+def start_crawling(country, number_of_pages=4):
     fetch_day = get_fetch_day_count()
     proxy_port_id = save_bandwidth_status(start=True)
     input_file = get_input_file(country)
     category_list, urls = input_file['category_list'], input_file['urls']
+    categories_fetched = len(category_list)
     status_report = []
     today = datetime.datetime.now().strftime('%D')
     for category_url, category_name in zip(urls, category_list):
@@ -359,7 +363,7 @@ def start_crawling(country):
         driver = initialize_chrome()
         status = Status(category_name, category_url, today)
         # scrap first ten pages
-        for x in range(1, 2):
+        for x in range(1, number_of_pages):
             status.pages_scrapped = str(x)
             driver.get(category_url + '?page=' + str(x))
             time.sleep(2)
@@ -390,19 +394,29 @@ def start_crawling(country):
                 status.error_image = image_name
         driver.close()
         # backup file for each category and day
-        with open(datetime.datetime.today().strftime('%d') + '-data-fetched.csv', 'w', newline='') as file:
+        with open(category_name + '-' + datetime.datetime.today().strftime('%d'), 'w', newline='') as file:
             writer = csv.writer(file)
             for each_product in data:
                 writer.writerow(each_product)
         for each_product in data:
             save_product_in_database(each_product, fetch_day)
+        save_remaining_products_days_by_category(category_name, fetch_day)
         file_name = write_data_to_file(category_name, country)
         upload_files_to_google_drive(file_name, country)
         status_report.append(status.__dict__)
     save_remaining_products_days(fetch_day)
     write_status_report(status_report)
     save_bandwidth_status(id=proxy_port_id)
+    send_email(country, categories_fetched, number_of_pages)
     delete_previous_files_from_google_drive()
+
+
+def save_remaining_products_days_by_category(category, fetch_day):
+    products = Product.objects.filter(category=category)
+    for product in products:
+        days = Day.objects.filter(product=product)
+        if len(days) < fetch_day:
+            Day(day_count=fetch_day, product=product).save()
 
 
 def save_remaining_products_days(fetch_day):
@@ -655,3 +669,42 @@ def bytesto(bytes, to, bsize=1024):
     a = {'k': 1, 'm': 2, 'g': 3, 't': 4, 'p': 5, 'e': 6}
     # r = float(bytes)
     return bytes / (bsize ** a[to])
+
+
+def send_email(country, categories_fetched, number_of_pages):
+    to = 'noondata2021@gmail.com'
+    subject = 'Noon Scraping Status Report for ' + str(country)
+    proxy_port = ProxyPorts.objects.latest('id')
+    message = 'Scraping for ' + datetime.datetime.now().strftime('%D') + ' has finished. Please check you google ' \
+                                                                         'drive for updated files.\n'
+    message = message + 'Scrapping details. \n'
+    message = message + 'Number of categories fetched : ' + str(categories_fetched) + '\n'
+    message = message + 'Number of pages scraped per category : ' + str(number_of_pages) + '\n'
+    message = message + 'Number of SKUs per category : ' + str(number_of_pages * 50) + '\n'
+    message = message + 'Bandwidth utilized : ' + str(proxy_port.bandwidth_utilized) + '\n'
+    message = message + 'Time taken : ' + str(proxy_port.updated_at - proxy_port.created_at).split('.')[0] + \
+              '(hour/minute/second)\n\n'
+    message = message + '<=======================>'
+    file = open('email-debug.txt', 'at')
+    file.write('From = ' + str(settings.EMAIL_HOST_USER) + '\n')
+    file.write('To = ' + str(to) + '\n')
+    try:
+        email_server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
+        file.write('Server connected successfully.\n')
+        email_server.ehlo()
+        email_server.starttls()
+        email_server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+        file.write('Logged in successfully.\n')
+        email_server.ehlo()
+        recipient_list = [to, ]
+        message = """From: %s\nTo: %s\nSubject: %s\n\n%s
+                """ % (settings.EMAIL_HOST_USER, ", ".join(recipient_list), subject, message)
+        email_server.sendmail(settings.EMAIL_HOST_USER, recipient_list, message)
+        email_server.close()
+        file.write('Email sent successfully.\n')
+    except Exception as error:
+        print(error)
+        file.write('Error thrown.\n')
+        file.write('Error details => ' + str(error) + '\n')
+    file.close()
+
