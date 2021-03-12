@@ -16,6 +16,11 @@ def crawl_ksa(request):
     return HttpResponse()
 
 
+def create_fetch_day_(request):
+    create_fetch_day()
+    return HttpResponse()
+
+
 def save_remaining_products(request):
     save_remaining_products_days(2)
     return HttpResponse()

@@ -536,7 +536,7 @@ def write_status_report(status_report):
             )
 
 
-def get_fetch_day_count():
+def create_fetch_day():
     days = FetchDay.objects.filter(month=datetime.datetime.now().date().strftime('%B'))
     if len(days) < 1:
         FetchDay(month=datetime.datetime.now().date().strftime('%B'), day=1).save()
@@ -545,6 +545,10 @@ def get_fetch_day_count():
         fetch_day = len(days) + 1
         FetchDay(month=datetime.datetime.now().date().strftime('%B'), day=fetch_day).save()
         return fetch_day
+
+
+def get_fetch_day_count():
+    return len(FetchDay.objects.all())
 
 
 def write_data_to_file(category_name, country):

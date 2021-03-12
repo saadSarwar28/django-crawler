@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path('uae', views.crawl_uae, name='crawl uae site'),
     path('ksa', views.crawl_ksa, name='crawl ksa site'),
+    path('create/fetch/day', views.create_fetch_day_, name='create fetch day'),
     # test functions
     path('write', views.write_data, name='write data to files'),
     path('save/remaining/days', views.save_remaining_products, name='save remaining products days'),
