@@ -351,7 +351,7 @@ def initialize_chrome():
 
 def start_crawling(country, number_of_pages=4):
     fetch_day = get_fetch_day_count()
-    proxy_port_id = save_bandwidth_status(start=True)
+    proxy_port_id = save_bandwidth_status(country=country, start=True)
     input_file = get_input_file(country)
     category_list, urls = input_file['category_list'], input_file['urls']
     categories_fetched = len(category_list)
@@ -427,7 +427,7 @@ def save_remaining_products_days(fetch_day):
             Day(day_count=fetch_day, product=product).save()
 
 
-def save_bandwidth_status(start=False, id=None):
+def save_bandwidth_status(country='', start=False, id=None):
     if start:
         response = requests.get('http://127.0.0.1:22999/api/recent_stats')
         response = json.loads(response.content)
@@ -436,7 +436,7 @@ def save_bandwidth_status(start=False, id=None):
         bandwidth_in = response['ports']['24000']['in_bw']
         bandwidth_in = bytesto(bandwidth_in, to='m')
         total_bandwidth = bandwidth_out + bandwidth_in
-        proxy_port = ProxyPorts(port_number=24000, starting_bandwidth=float(total_bandwidth))
+        proxy_port = ProxyPorts(port_number=24000, site=country, starting_bandwidth=float(total_bandwidth))
         proxy_port.save()
         return proxy_port.id
     else:
@@ -678,7 +678,7 @@ def bytesto(bytes, to, bsize=1024):
 def send_email(country, categories_fetched, number_of_pages):
     to = 'noondata2021@gmail.com'
     subject = 'Noon Scraping Status Report for ' + str(country)
-    proxy_port = ProxyPorts.objects.latest('id')
+    proxy_port = ProxyPorts.objects.filter(site=country).latest('id')
     message = 'Scraping for ' + datetime.datetime.now().strftime('%D') + ' has finished. Please check you google ' \
                                                                          'drive for updated files.\n'
     message = message + 'Scrapping details. \n'

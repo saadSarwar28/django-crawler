@@ -48,6 +48,7 @@ class Day(models.Model):
 
 class ProxyPorts(models.Model):
     port_number = models.IntegerField()
+    site = models.CharField(max_length=25, null=True, blank=True)
     starting_bandwidth = models.DecimalField(max_digits=16, decimal_places=8, default=0.0)
     ending_bandwidth = models.DecimalField(max_digits=16, decimal_places=8, default=0.0)
     bandwidth_utilized = models.DecimalField(max_digits=16, decimal_places=8, default=0.0)
