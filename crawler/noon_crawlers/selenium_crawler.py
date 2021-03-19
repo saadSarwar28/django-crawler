@@ -363,7 +363,7 @@ def start_crawling(country, number_of_pages=4):
         driver = initialize_chrome()
         status = Status(category_name, category_url, today)
         # scrap first ten pages
-        for x in range(1, number_of_pages):
+        for x in range(1, number_of_pages + 1):
             status.pages_scrapped = str(x)
             driver.get(category_url + '?page=' + str(x))
             time.sleep(2)
@@ -455,7 +455,7 @@ def save_bandwidth_status(country='', start=False, id=None):
 
 
 def save_product_in_database(data, fetch_day):
-    if Product.objects.filter(sku=data['product_sku']).exists():
+    if Product.objects.filter(sku=str(data['product_sku']).strip()).exists():
         product = Product.objects.get(sku=data['product_sku'])
         product.category = data['category_name']
         product.product_title = data['product_name']
@@ -497,7 +497,7 @@ def save_product_in_database(data, fetch_day):
     else:
         new_product = Product(
             category=data['category_name'],
-            sku=data['product_sku'],
+            sku=str(data['product_sku']).strip(),
             product_title=data['product_name'],
             listing_url=data['product_url'],
             image_url=data['image_url'],
@@ -627,7 +627,7 @@ def write_data_to_file(category_name, country):
 
 
     data.insert(0, [category_name + '-' + country, ])
-    file_name = category_name + '-' + fetch_days[0].created_at.strftime('%d') + '.xlsx'
+    file_name = 'data/' + category_name + '-' + fetch_days[0].created_at.strftime('%d') + '.xlsx'
     df = pd.DataFrame.from_records(data)
     df.to_excel(file_name)
     return file_name
