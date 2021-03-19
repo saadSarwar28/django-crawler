@@ -1,1 +1,1 @@
-curl http://localhost:8000/crawler/noon
+curl http://localhost:8000/crawl/create/fetch/day
