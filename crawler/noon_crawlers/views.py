@@ -21,6 +21,11 @@ def create_fetch_day_(request):
     return HttpResponse()
 
 
+def get_fetch_day(request):
+    print(get_fetch_day_count())
+    return HttpResponse()
+
+
 def save_remaining_products(request):
     save_remaining_products_days(2)
     return HttpResponse()

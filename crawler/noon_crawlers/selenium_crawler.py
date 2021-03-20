@@ -98,6 +98,8 @@ def get_input_file(file_key):
         response = service.files().list(q=query, spaces='drive',
                                         fields='nextPageToken, files(id, name)', pageToken=page_token).execute()
         for file in response.get('files', []):
+            print(file)
+            print(file.get('id'))
             file_id = file.get('id')
             # print('Found file: %s (%s)' % (file.get('name'), file.get('id')))
         page_token = response.get('nextPageToken', None)
@@ -548,7 +550,7 @@ def create_fetch_day():
 
 
 def get_fetch_day_count():
-    return len(FetchDay.objects.all())
+    return FetchDay.objects.filter(month=datetime.datetime.now().date().strftime('%B')).count()
 
 
 def write_data_to_file(category_name, country):
