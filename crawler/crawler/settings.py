@@ -126,5 +126,5 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'noondata2021@gmail.com'
-EMAIL_HOST_PASSWORD = 'Emea3621!'
+EMAIL_HOST_PASSWORD = 'aephyuctalpeyeus'
 EMAIL_RELAY_HOST = 'smtp-relay.gmail.com'
