@@ -7,7 +7,7 @@ from .selenium_crawler import *
 
 
 def crawl_uae(request):
-    start_crawling('UAE', number_of_pages=2)
+    start_crawling('UAE', number_of_pages=1)
     return HttpResponse()
 
 
@@ -27,7 +27,7 @@ def get_fetch_day(request):
 
 
 def save_remaining_products(request):
-    save_remaining_products_days(2)
+    save_remaining_products_days()
     return HttpResponse()
 
 
@@ -54,7 +54,7 @@ def delete_files_from_google(request):
 
 
 def get_input_files(request):
-    print(get_input_file('KSA'))
+    print(get_input_file('UAE'))
     return HttpResponse()
 
 

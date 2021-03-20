@@ -96,16 +96,18 @@ def get_input_file(file_key):
     file_id = ''
     while True:
         response = service.files().list(q=query, spaces='drive',
-                                        fields='nextPageToken, files(id, name)', pageToken=page_token).execute()
+                                        fields='nextPageToken, files(id, name, trashed, version)', pageToken=page_token).execute()
+        version = 0
         for file in response.get('files', []):
-            print(file)
-            print(file.get('id'))
-            file_id = file.get('id')
+            if file.get('trashed'):
+                continue
+            if int(file.get('version')) > version:
+                version = int(file.get('version'))
+                file_id = file.get('id')
             # print('Found file: %s (%s)' % (file.get('name'), file.get('id')))
         page_token = response.get('nextPageToken', None)
         if page_token is None:
             break
-
     request = service.files().get_media(fileId=file_id)
     fh = io.BytesIO()
     downloader = MediaIoBaseDownload(fh, request)
@@ -114,9 +116,9 @@ def get_input_file(file_key):
         status, done = downloader.next_chunk()
         # print("Download %d%%." % int(status.progress() * 100))
     fh.seek(0)
-    with open(file_key + '.xlsx', 'wb') as out:
+    with open('input/' + file_key + '.xlsx', 'wb') as out:
         out.write(fh.read())
-    input_file = pd.read_excel(file_key + '.xlsx', skiprows=[0])
+    input_file = pd.read_excel('input/' + file_key + '.xlsx', skiprows=[0])
     category_list = input_file['Category Name'].to_list()
     urls = input_file['URL'].to_list()
     return {'category_list': category_list, 'urls': urls}
@@ -363,10 +365,10 @@ def start_crawling(country, number_of_pages=4):
         # initializing chrome here means new ip for every 500 SKUs
         data = []
         driver = initialize_chrome()
-        status = Status(category_name, category_url, today)
+        status = {'category': category_name, 'url': category_url, 'date': today}
         # scrap first ten pages
         for x in range(1, number_of_pages + 1):
-            status.pages_scrapped = str(x)
+            status['pages_scrapped'] = str(x)
             driver.get(category_url + '?page=' + str(x))
             time.sleep(2)
             # fetching divs of all products
@@ -382,7 +384,7 @@ def start_crawling(country, number_of_pages=4):
                             fetch_products_details(driver, product_sku, product_url, category_name, category_url)
                         )
                     except Exception as error:
-                        status.error_in_skus = product_sku + ' - ' + status.error_in_skus
+                        status['error_in_skus'] = product_sku + ' - ' + status['error_in_skus']
                         image_name = product_sku + '-' + str(random.random()).split('.')[1][0:8] + '.png'
                         driver.save_screenshot('../debug/sku/' + image_name)
                         sku_errors.append({'sku': product_sku, 'error': error, 'error_image': image_name})
@@ -392,11 +394,11 @@ def start_crawling(country, number_of_pages=4):
             except Exception as error:
                 image_name = category_name + '-' + str(random.random()).split('.')[1][0:8] + '.png'
                 driver.save_screenshot('../debug/' + image_name)
-                status.error = error
-                status.error_image = image_name
+                status['error'] = error
+                status['error_image'] = image_name
         driver.close()
         # backup file for each category and day
-        with open(category_name + '-' + datetime.datetime.today().strftime('%d'), 'w', newline='') as file:
+        with open('backup/' + category_name + '-' + datetime.datetime.today().strftime('%d'), 'w', newline='') as file:
             writer = csv.writer(file)
             for each_product in data:
                 writer.writerow(each_product)
@@ -405,8 +407,7 @@ def start_crawling(country, number_of_pages=4):
         save_remaining_products_days_by_category(category_name, fetch_day)
         file_name = write_data_to_file(category_name, country)
         upload_files_to_google_drive(file_name, country)
-        status_report.append(status.__dict__)
-    save_remaining_products_days(fetch_day)
+        status_report.append(status)
     write_status_report(status_report)
     save_bandwidth_status(id=proxy_port_id)
     send_email(country, categories_fetched, number_of_pages)
@@ -416,16 +417,17 @@ def start_crawling(country, number_of_pages=4):
 def save_remaining_products_days_by_category(category, fetch_day):
     products = Product.objects.filter(category=category)
     for product in products:
-        days = Day.objects.filter(product=product)
-        if len(days) < fetch_day:
+        days = Day.objects.filter(product=product).count()
+        if days < fetch_day:
             Day(day_count=fetch_day, product=product).save()
 
 
-def save_remaining_products_days(fetch_day):
+def save_remaining_products_days():
+    fetch_day = get_fetch_day_count()
     products = Product.objects.all()
     for product in products:
-        days = Day.objects.filter(product=product)
-        if len(days) < fetch_day:
+        days = Day.objects.filter(product=product).count()
+        if days < fetch_day:
             Day(day_count=fetch_day, product=product).save()
 
 
@@ -514,14 +516,13 @@ def save_product_in_database(data, fetch_day):
         new_product.save()
         for x in range(0, fetch_day):
             if x == (fetch_day - 1):
-                Day(day_count=fetch_day, inventory=int(data['total_inventory']),
-                    product=new_product).save()
+                Day(day_count=fetch_day, inventory=int(data['total_inventory']), product=new_product).save()
             else:
                 Day(day_count=x + 1, product=new_product).save()
 
 
 def write_status_report(status_report):
-    with open('status-report-' + datetime.datetime.now().strftime('%d') + '.csv', 'w', newline='') as file:
+    with open('Status-reports/' + datetime.datetime.now().strftime('%d') + '.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['category', 'url', 'date', 'pages_scrapped', 'error', 'error_image', 'error_in_skus'])
         for row in status_report:
@@ -643,23 +644,42 @@ def write_data_to_file(category_name, country):
 
 
 def upload_files_to_google_drive(file_name, country):
-    folder_id = output_folder_ids[country]
-    drive_service = login_google()
-    file_metadata = {
-        'name': file_name,
-        'parents': [folder_id]
-    }
-    media = MediaFileUpload(file_name, mimetype='application/vnd.openxmlformats-', resumable=True)
-    file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    print(file_name)
+    debug_file = open('debug/file-upload-debug.txt', encoding='utf-8')
+    debug_file.write('file name : ' + str(file_name) + '\n')
+    try:
+        folder_id = output_folder_ids[country]
+        drive_service = login_google()
+        file_metadata = {
+            'name': file_name,
+            'parents': [folder_id]
+        }
+        media = MediaFileUpload(file_name, mimetype='application/vnd.openxmlformats-', resumable=True)
+        file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+        debug_file.write('File uploaded successfully\n')
+    except Exception as error:
+        debug_file.write('Error while uploading file\n')
+        debug_file.write('Error : ' + str(error) + '\n')
+    debug_file.write('=============================\n')
+    debug_file.close()
     FilesToDelete(file_id=file['id']).save()
 
 
 def delete_previous_files_from_google_drive():
+    debug_file = open('debug/debug-delete-files.txt', encoding='utf-8')
     drive_service = login_google()
     files = FilesToDelete.objects.filter(created_at__lt=datetime.datetime.now().date())
-    for file in files:
-        drive_service.files().delete(fileId=file.file_id).execute()
-        file.delete()
+    try:
+        for file in files:
+            debug_file.write('File id : ' + str(file.file_id) + '\n')
+            drive_service.files().delete(fileId=file.file_id).execute()
+            file.delete()
+            debug_file.write('File deleted successfully\n')
+    except Exception as error:
+        debug_file.write('File delete errored out\n')
+        debug_file.write(str(error) + '\n')
+    debug_file.write('================================\n')
+    debug_file.close()
 
 
 def log_sku_errors(sku_errors):
