@@ -656,12 +656,12 @@ def upload_files_to_google_drive(file_name, country):
         media = MediaFileUpload(file_name.split('/')[1], mimetype='application/vnd.openxmlformats-', resumable=True)
         file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
         debug_file.write('File uploaded successfully\n')
+        FilesToDelete(file_id=file['id']).save()
     except Exception as error:
         debug_file.write('Error while uploading file\n')
         debug_file.write('Error : ' + str(error) + '\n')
     debug_file.write('=============================\n')
     debug_file.close()
-    FilesToDelete(file_id=file['id']).save()
 
 
 def delete_previous_files_from_google_drive():
