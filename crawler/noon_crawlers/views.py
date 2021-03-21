@@ -12,7 +12,7 @@ def crawl_uae(request):
 
 
 def crawl_ksa(request):
-    start_crawling('KSA', number_of_pages=2)
+    start_crawling('KSA', number_of_pages=1)
     return HttpResponse()
 
 

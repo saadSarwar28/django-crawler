@@ -369,7 +369,7 @@ def start_crawling(country, number_of_pages=4):
         # scrap first ten pages
         for x in range(1, number_of_pages + 1):
             status['pages_scrapped'] = str(x)
-            driver.get(category_url + '?page=' + str(x))
+            driver.get(category_url + '?page=' + str(x) + '&limit=70')
             time.sleep(2)
             # fetching divs of all products
             try:
