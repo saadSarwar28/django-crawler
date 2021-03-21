@@ -404,7 +404,6 @@ def start_crawling(country, number_of_pages=4):
                 driver.save_screenshot('debug/' + image_name)
                 status['error'] = error
                 status['error_image'] = image_name
-                status['error_in_skus'] = ''
                 driver.close()
         driver.close()
         # backup file for each category and day
