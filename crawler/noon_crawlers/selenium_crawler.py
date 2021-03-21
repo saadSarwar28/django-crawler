@@ -365,7 +365,15 @@ def start_crawling(country, number_of_pages=4):
         # initializing chrome here means new ip for every 500 SKUs
         data = []
         driver = initialize_chrome()
-        status = {'category': category_name, 'url': category_url, 'date': today}
+        status = {
+            'category': category_name,
+            'url': category_url,
+            'date': today,
+            'pages_scrapped': '',
+            'error_in_skus': '',
+            'error': '',
+            'error_image': ''
+        }
         # scrap first ten pages
         for x in range(1, number_of_pages + 1):
             status['pages_scrapped'] = str(x)
@@ -386,16 +394,18 @@ def start_crawling(country, number_of_pages=4):
                     except Exception as error:
                         status['error_in_skus'] = product_sku + ' - ' + status['error_in_skus']
                         image_name = product_sku + '-' + str(random.random()).split('.')[1][0:8] + '.png'
-                        driver.save_screenshot('../debug/sku/' + image_name)
+                        driver.save_screenshot('debug/sku/' + image_name)
                         sku_errors.append({'sku': product_sku, 'error': error, 'error_image': image_name})
                         driver.close()
                         driver.switch_to.window(driver.window_handles[0])
                 log_sku_errors(sku_errors)
             except Exception as error:
                 image_name = category_name + '-' + str(random.random()).split('.')[1][0:8] + '.png'
-                driver.save_screenshot('../debug/' + image_name)
+                driver.save_screenshot('debug/' + image_name)
                 status['error'] = error
                 status['error_image'] = image_name
+                status['error_in_skus'] = ''
+                driver.close()
         driver.close()
         # backup file for each category and day
         with open('backup/' + category_name + '-' + datetime.datetime.today().strftime('%d'), 'w', newline='') as file:
