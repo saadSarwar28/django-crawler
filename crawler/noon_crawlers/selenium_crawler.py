@@ -405,7 +405,10 @@ def start_crawling(country, number_of_pages=4):
                 status['error'] = error
                 status['error_image'] = image_name
                 driver.close()
-        driver.close()
+        try:
+            driver.close()
+        except:
+            pass
         for each_product in data:
             save_product_in_database(each_product, fetch_day)
         save_remaining_products_days_by_category(category_name, fetch_day)
