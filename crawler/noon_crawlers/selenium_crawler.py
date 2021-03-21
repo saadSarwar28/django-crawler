@@ -406,11 +406,6 @@ def start_crawling(country, number_of_pages=4):
                 status['error_image'] = image_name
                 driver.close()
         driver.close()
-        # backup file for each category and day
-        with open('backup/' + category_name + '-' + datetime.datetime.today().strftime('%d'), 'w', newline='') as file:
-            writer = csv.writer(file)
-            for each_product in data:
-                writer.writerow(each_product)
         for each_product in data:
             save_product_in_database(each_product, fetch_day)
         save_remaining_products_days_by_category(category_name, fetch_day)
@@ -691,7 +686,7 @@ def delete_previous_files_from_google_drive():
 
 
 def log_sku_errors(sku_errors):
-    file = open('../debug/sku_errors.csv', 'at')
+    file = open('debug/sku/sku_errors.csv', 'at', encoding='utf-8')
     if file.tell() == 0:
         file.write('SKU,error,image name\n')
     for each_sku in sku_errors:
