@@ -650,7 +650,7 @@ def upload_files_to_google_drive(file_name, country):
         folder_id = output_folder_ids[country]
         drive_service = login_google()
         file_metadata = {
-            'name': file_name,
+            'name': file_name.split('/')[1],
             'parents': [folder_id]
         }
         media = MediaFileUpload(file_name, mimetype='application/vnd.openxmlformats-', resumable=True)
