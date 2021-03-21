@@ -653,7 +653,7 @@ def upload_files_to_google_drive(file_name, country):
             'name': file_name,
             'parents': [folder_id]
         }
-        media = MediaFileUpload(file_name.split('/')[1], mimetype='application/vnd.openxmlformats-', resumable=True)
+        media = MediaFileUpload(file_name, mimetype='application/vnd.openxmlformats-', resumable=True)
         file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
         debug_file.write('File uploaded successfully\n')
         FilesToDelete(file_id=file['id']).save()
