@@ -644,8 +644,7 @@ def write_data_to_file(category_name, country):
 
 
 def upload_files_to_google_drive(file_name, country):
-    print(file_name)
-    debug_file = open('debug/file-upload-debug.txt', encoding='utf-8')
+    debug_file = open('debug/file-upload-debug.txt', 'at', encoding='utf-8')
     debug_file.write('file name : ' + str(file_name) + '\n')
     try:
         folder_id = output_folder_ids[country]
@@ -666,7 +665,7 @@ def upload_files_to_google_drive(file_name, country):
 
 
 def delete_previous_files_from_google_drive():
-    debug_file = open('debug/debug-delete-files.txt', encoding='utf-8')
+    debug_file = open('debug/debug-delete-files.txt', 'at', encoding='utf-8')
     drive_service = login_google()
     files = FilesToDelete.objects.filter(created_at__lt=datetime.datetime.now().date())
     try:
