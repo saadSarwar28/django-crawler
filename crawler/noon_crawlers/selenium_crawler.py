@@ -132,21 +132,21 @@ def get_inventory_details(driver):
             EC.presence_of_element_located((By.XPATH, "//div[@id='selectBoxFromComponent']"))
         ).click()
     except Exception as error:
-        print(error)
+        # print(error)
         return 1
     time.sleep(1)
     total_inventory = len(driver.find_elements_by_xpath('//div[contains(@id, "react-select-")]'))
     id = 'react-select-selectBoxFromComponent-option-' + str(total_inventory - 1)
     last_scroll_ele = driver.find_element_by_id(id)
     driver.execute_script("return arguments[0].scrollIntoView(true);", last_scroll_ele)
-    last_scroll_ele.click()
+    # last_scroll_ele.click()
     time.sleep(1)
-    add_to_cart_button = driver.find_element_by_class_name('cart-button')
-    actions = ActionChains(driver)
-    actions.move_to_element(add_to_cart_button).perform()
-    add_to_cart_button.click()
-    time.sleep(2)
-    driver.find_element_by_tag_name('body').click()
+    # add_to_cart_button = driver.find_element_by_class_name('cart-button')
+    # actions = ActionChains(driver)
+    # actions.move_to_element(add_to_cart_button).perform()
+    # add_to_cart_button.click()
+    # time.sleep(2)
+    # driver.find_element_by_tag_name('body').click()
     return total_inventory
 
 
@@ -402,10 +402,11 @@ def start_crawling(country, number_of_pages=4):
                     product_urls.append(div.find_element_by_tag_name('a').get_attribute('href'))
                 for product_sku, product_url in zip(product_skus, product_urls):
                     try:
-                        data.append(
-                            fetch_products_details(driver, product_sku, product_url, category_name, category_url)
-                        )
+                        product_details = fetch_products_details(driver, product_sku, product_url, category_name, category_url)
+                        data.append(product_details)
                         number_of_sku = number_of_sku + 1
+                        print(number_of_sku)
+                        print(product_details)
                     except Exception as error:
                         status['error_in_skus'] = product_sku + ' - ' + status['error_in_skus']
                         image_name = product_sku + '-' + str(random.random()).split('.')[1][0:8] + '.png'
