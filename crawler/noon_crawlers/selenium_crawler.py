@@ -388,8 +388,8 @@ def start_crawling(country, number_of_pages=4):
             status['pages_scrapped'] = str(x)
             try:
                 driver.get(category_url + '?page=' + str(x) + '&limit=60')
-            except InvalidSessionIdException:
-                print('Invalid session id occured')
+            except Exception as error:
+                print('Error getting url => ' + str(error))
                 driver = initialize_firefox()
                 driver.get(category_url + '?page=' + str(x) + '&limit=60')
             time.sleep(2)

@@ -22,7 +22,7 @@ def create_fetch_day_(request):
 
 
 def get_fetch_day(request):
-    print(get_fetch_day_count())
+    print('Fetch day === > ' + str(get_fetch_day_count()))
     return HttpResponse()
 
 
