@@ -96,7 +96,8 @@ def get_input_file(file_key):
     file_id = ''
     while True:
         response = service.files().list(q=query, spaces='drive',
-                                        fields='nextPageToken, files(id, name, trashed, version)', pageToken=page_token).execute()
+                                        fields='nextPageToken, files(id, name, trashed, version)',
+                                        pageToken=page_token).execute()
         version = 0
         for file in response.get('files', []):
             if file.get('trashed'):
@@ -183,7 +184,8 @@ def get_total_inventory(driver, num_of_sellers, sku):
         # try:
         try:
             estimator_right = driver.find_element_by_class_name('estimator_right')
-            image = estimator_right.find_element_by_xpath('//img[@src="https://k.nooncdn.com/s/app/com/noon/images/fulfilment_express-en.png"]')
+            image = estimator_right.find_element_by_xpath(
+                '//img[@src="https://k.nooncdn.com/s/app/com/noon/images/fulfilment_express-en.png"]')
             num_of_fbn_sellers = 1
         except:
             pass
@@ -431,7 +433,7 @@ def start_crawling(country, number_of_pages=4):
         file_name = write_data_to_file(category_name, country)
         upload_files_to_google_drive(file_name, country)
         status_report.append(status)
-    write_status_report(status_report)
+    write_status_report(country, status_report)
     save_bandwidth_status(id=proxy_port_id)
     send_email(country, categories_fetched, number_of_pages, number_of_sku)
     delete_previous_files_from_google_drive()
@@ -549,8 +551,9 @@ def save_product_in_database(data, fetch_day):
                 Day(day_count=x + 1, product=new_product).save()
 
 
-def write_status_report(status_report):
-    with open('Status-reports/' + datetime.datetime.now().strftime('%d') + '.csv', 'w', newline='') as file:
+def write_status_report(country, status_report):
+    with open('Status-reports/' + str(country) + ' - ' + datetime.datetime.now().strftime('%d') + '.csv', 'w',
+              newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['category', 'url', 'date', 'pages_scrapped', 'error', 'error_image', 'error_in_skus'])
         for row in status_report:
@@ -656,7 +659,6 @@ def write_data_to_file(category_name, country):
                 sold_quantity_last_30_day,
             ] + inventory)
 
-
     data.insert(0, [category_name + '-' + country, ])
     file_name = 'data/' + category_name + '-' + fetch_days[0].created_at.strftime('%d') + '.xlsx'
     df = pd.DataFrame.from_records(data)
@@ -761,4 +763,3 @@ def send_email(country, categories_fetched, number_of_pages, number_of_sku):
         file.write('Error thrown.\n')
         file.write('Error details => ' + str(error) + '\n')
     file.close()
-
