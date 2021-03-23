@@ -295,10 +295,14 @@ def initialize_firefox():
     # chrome_options.add_argument('--headless')
     # chrome_options.add_argument('--no-sandbox') # required when running as root user.
     # otherwise you would get no sandbox errors.
+    firefox_profile = webdriver.FirefoxProfile()
+    firefox_profile.set_preference('permissions.default.image', 2)
+    firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
     driver = webdriver.Firefox(
         executable_path=driver_path,
         desired_capabilities=capabilities,
-        options=firefox_options
+        options=firefox_options,
+        firefox_profile=firefox_profile
     )
     return driver
 
