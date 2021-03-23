@@ -1,5 +1,5 @@
 from __future__ import print_function
-
+import geckodriver_autoinstaller
 import smtplib
 from crawler import settings
 from apiclient import errors
@@ -9,7 +9,7 @@ import random
 import io
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, InvalidSessionIdException
 from selenium.webdriver import ActionChains, Proxy
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.proxy import ProxyType
@@ -151,8 +151,8 @@ def get_inventory_details(driver):
 
 def record_inventory_error(driver, error, sku):
     image_name = sku + '-' + str(random.random()).split('.')[1][0:8] + '.png'
-    driver.save_screenshot('../debug/inventory/' + image_name)
-    file = open('inventory-errors.txt', 'at')
+    driver.save_screenshot('debug/inventory/' + image_name)
+    file = open('debug/inventory-errors.txt', 'at')
     file.write('Error : ' + str(error) + '\n')
     file.write('SKU : ' + str(sku) + '\n')
     file.write('Error_image : ' + image_name + '\n')
@@ -275,6 +275,7 @@ def fetch_products_details(driver, product_sku, product_url, category_name, cate
 
 
 def initialize_firefox():
+    geckodriver_autoinstaller.install()
     port = refresh_proxy_port()
     PROXY = 'localhost:' + port
     proxy = Proxy()
@@ -295,7 +296,7 @@ def initialize_firefox():
     # chrome_options.add_argument('--no-sandbox') # required when running as root user.
     # otherwise you would get no sandbox errors.
     driver = webdriver.Firefox(
-        executable_path=driver_path,
+        # executable_path=driver_path,
         desired_capabilities=capabilities,
         options=firefox_options
     )
@@ -361,10 +362,12 @@ def start_crawling(country, number_of_pages=4):
     categories_fetched = len(category_list)
     status_report = []
     today = datetime.datetime.now().strftime('%D')
+    number_of_sku = 0
     for category_url, category_name in zip(urls, category_list):
-        # initializing chrome here means new ip for every 500 SKUs
+        if category_name == 'home and kitchen':
+            continue
         data = []
-        driver = initialize_chrome()
+        driver = initialize_firefox()
         status = {
             'category': category_name,
             'url': category_url,
@@ -377,7 +380,12 @@ def start_crawling(country, number_of_pages=4):
         # scrap first ten pages
         for x in range(1, number_of_pages + 1):
             status['pages_scrapped'] = str(x)
-            driver.get(category_url + '?page=' + str(x) + '&limit=70')
+            try:
+                driver.get(category_url + '?page=' + str(x) + '&limit=60')
+            except InvalidSessionIdException:
+                print('Invalid session id occured')
+                driver = initialize_firefox()
+                driver.get(category_url + '?page=' + str(x) + '&limit=60')
             time.sleep(2)
             # fetching divs of all products
             try:
@@ -391,6 +399,7 @@ def start_crawling(country, number_of_pages=4):
                         data.append(
                             fetch_products_details(driver, product_sku, product_url, category_name, category_url)
                         )
+                        number_of_sku = number_of_sku + 1
                     except Exception as error:
                         status['error_in_skus'] = product_sku + ' - ' + status['error_in_skus']
                         image_name = product_sku + '-' + str(random.random()).split('.')[1][0:8] + '.png'
@@ -404,7 +413,10 @@ def start_crawling(country, number_of_pages=4):
                 driver.save_screenshot('debug/' + image_name)
                 status['error'] = error
                 status['error_image'] = image_name
-                driver.close()
+                try:
+                    driver.close()
+                except:
+                    pass
         try:
             driver.close()
         except:
@@ -417,7 +429,7 @@ def start_crawling(country, number_of_pages=4):
         status_report.append(status)
     write_status_report(status_report)
     save_bandwidth_status(id=proxy_port_id)
-    send_email(country, categories_fetched, number_of_pages)
+    send_email(country, categories_fetched, number_of_pages, number_of_sku)
     delete_previous_files_from_google_drive()
 
 
@@ -703,7 +715,7 @@ def bytesto(bytes, to, bsize=1024):
     return bytes / (bsize ** a[to])
 
 
-def send_email(country, categories_fetched, number_of_pages):
+def send_email(country, categories_fetched, number_of_pages, number_of_sku):
     to = 'noondata2021@gmail.com'
     subject = 'Noon Scraping Status Report for ' + str(country)
     proxy_port = ProxyPorts.objects.filter(site=country).latest('id')
@@ -713,6 +725,7 @@ def send_email(country, categories_fetched, number_of_pages):
     message = message + 'Number of categories fetched : ' + str(categories_fetched) + '\n'
     message = message + 'Number of pages scraped per category : ' + str(number_of_pages) + '\n'
     message = message + 'Number of SKUs per category : ' + str(number_of_pages * 50) + '\n'
+    message = message + 'Total Number of SKUs fetched per site : ' + str(number_of_sku) + '\n'
     message = message + 'Bandwidth utilized : ' + str(proxy_port.bandwidth_utilized) + '\n'
     message = message + 'Time taken : ' + str(proxy_port.updated_at - proxy_port.created_at).split('.')[0] + \
               '(hour/minute/second)\n\n'
