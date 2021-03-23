@@ -296,7 +296,7 @@ def initialize_firefox():
     # chrome_options.add_argument('--no-sandbox') # required when running as root user.
     # otherwise you would get no sandbox errors.
     driver = webdriver.Firefox(
-        # executable_path=driver_path,
+        executable_path=driver_path,
         desired_capabilities=capabilities,
         options=firefox_options
     )
