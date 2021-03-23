@@ -519,8 +519,13 @@ def save_product_in_database(data, fetch_day):
                     product.sold_quantity_last_30_day = total_sold
                 index = index + 1
         product.save()
-        Day(day_count=len(previous_days) + 1, sold_quantity=sold_quantity,
-            inventory=int(data['total_inventory']), product=product).save()
+        if len(previous_days) < fetch_day:
+            Day(day_count=len(previous_days) + 1, sold_quantity=sold_quantity,
+                inventory=int(data['total_inventory']), product=product).save()
+        else:
+            previous_days[0].sold_quantity = sold_quantity
+            previous_days[0].inventory = int(data['total_inventory'])
+            previous_days[0].save()
     else:
         new_product = Product(
             category=data['category_name'],
