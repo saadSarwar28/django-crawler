@@ -6,13 +6,13 @@ from .selenium_crawler import *
 # Create your views here.
 
 
-def crawl(request):
+def crawl_uae(request):
     start_crawling('UAE', number_of_pages=2)
-    start_crawling('KSA', number_of_pages=2)
     return HttpResponse()
 
 
 def crawl_ksa(request):
+    start_crawling('KSA', number_of_pages=2)
     return HttpResponse()
 
 
@@ -28,6 +28,11 @@ def get_fetch_day(request):
 
 def save_remaining_products(request):
     save_remaining_products_days()
+    return HttpResponse()
+
+
+def save_remaining_products_by_category(request):
+    save_remaining_products_days_by_category('Tablet Accessories', fetch_day=1)
     return HttpResponse()
 
 
