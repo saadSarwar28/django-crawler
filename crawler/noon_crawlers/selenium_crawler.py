@@ -1,5 +1,5 @@
 from __future__ import print_function
-import geckodriver_autoinstaller
+# import geckodriver_autoinstaller
 import smtplib
 from crawler import settings
 from apiclient import errors
@@ -275,7 +275,7 @@ def fetch_products_details(driver, product_sku, product_url, category_name, cate
 
 
 def initialize_firefox():
-    geckodriver_autoinstaller.install()
+    # geckodriver_autoinstaller.install()
     port = refresh_proxy_port()
     PROXY = 'localhost:' + port
     proxy = Proxy()
