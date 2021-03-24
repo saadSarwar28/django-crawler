@@ -13,15 +13,15 @@ class FetchDay(models.Model):
 
 
 class Product(models.Model):
-    category = models.CharField(max_length=250, null=True, blank=True)
+    category = models.CharField(max_length=1000, null=True, blank=True)
     sku = models.CharField(max_length=250, unique=True, null=True, blank=True)
-    product_title = models.CharField(max_length=250, null=True, blank=True)
-    listing_url = models.CharField(max_length=250, null=True, blank=True)
-    image_url = models.CharField(max_length=500, null=True, blank=True)
-    brand = models.CharField(max_length=250, null=True, blank=True)
+    product_title = models.CharField(max_length=1000, null=True, blank=True)
+    listing_url = models.CharField(max_length=1000, null=True, blank=True)
+    image_url = models.CharField(max_length=1000, null=True, blank=True)
+    brand = models.CharField(max_length=1000, null=True, blank=True)
     report_date_time = models.CharField(max_length=250, null=True, blank=True)
     no_of_sellers = models.IntegerField(null=True, blank=True)
-    no_of_fbn_sellers = models.IntegerField(null=True, blank=True)
+    no_of_fbn_sellers = models.IntegerField(default=0, null=True, blank=True)
     buy_box_seller = models.CharField(max_length=250, null=True, blank=True)
     buy_box_Price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     # now actually latest buy box inventory
