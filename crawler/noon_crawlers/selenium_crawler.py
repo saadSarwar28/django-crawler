@@ -510,6 +510,8 @@ def save_product_in_database(data, fetch_day, country):
                 sold_quantity = 0
         else:
             sold_quantity = 0
+        previous_days[0].sold_quantity = sold_quantity
+        previous_days[0].save()
         product.sold_quantity_last_day = sold_quantity
         index = 0
         total_sold = 0
@@ -523,8 +525,7 @@ def save_product_in_database(data, fetch_day, country):
                 index = index + 1
         product.save()
         if len(previous_days) < fetch_day:
-            Day(day_count=len(previous_days) + 1, sold_quantity=sold_quantity,
-                inventory=int(data['total_inventory']), product=product).save()
+            Day(day_count=len(previous_days) + 1, inventory=int(data['total_inventory']), product=product).save()
         else:
             previous_days[0].sold_quantity = sold_quantity
             previous_days[0].inventory = int(data['total_inventory'])
