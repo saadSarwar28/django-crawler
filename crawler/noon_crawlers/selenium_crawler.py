@@ -429,7 +429,7 @@ def start_crawling(country, number_of_pages=4):
         except:
             pass
         for each_product in data:
-            save_product_in_database(each_product, fetch_day)
+            save_product_in_database(each_product, fetch_day, country)
         save_remaining_products_days_by_category(category_name, fetch_day)
         file_name = write_data_to_file(category_name, country)
         upload_files_to_google_drive(file_name, country)
@@ -484,8 +484,8 @@ def save_bandwidth_status(country='', start=False, id=None):
     return
 
 
-def save_product_in_database(data, fetch_day):
-    if Product.objects.filter(sku=str(data['product_sku']).strip()).exists():
+def save_product_in_database(data, fetch_day, country):
+    if Product.objects.filter(sku=str(data['product_sku'], country=country).strip()).exists():
         product = Product.objects.get(sku=data['product_sku'])
         product.category = data['category_name']
         product.product_title = data['product_name']
@@ -531,6 +531,7 @@ def save_product_in_database(data, fetch_day):
             previous_days[0].save()
     else:
         new_product = Product(
+            country=country,
             category=data['category_name'],
             sku=str(data['product_sku']).strip(),
             product_title=data['product_name'],
@@ -587,7 +588,7 @@ def get_fetch_day_count():
 
 
 def write_data_to_file(category_name, country):
-    products = Product.objects.filter(category=category_name)
+    products = Product.objects.filter(category=category_name, country=country)
     fetch_days = FetchDay.objects.filter(month=datetime.datetime.now().date().strftime('%B')).order_by('-created_at')
     total_fetched_days = len(fetch_days)
     data = []
