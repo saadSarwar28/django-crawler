@@ -49,7 +49,7 @@ def write_data(request):
 
 
 def upload_files_to_google(request):
-    upload_files_to_google_drive('data/UAE/accesories and supplies-24', 'UAE')
+    upload_files_to_google_drive('data/UAE/accesories and supplies-24.xlsx', 'UAE')
     return HttpResponse()
 
 
