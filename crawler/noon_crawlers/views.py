@@ -42,7 +42,7 @@ def send_email_gmail(request):
 
 
 def write_data(request):
-    country = request.query_params.get('country')
+    country = request.GET.get('country')
     categories = Product.objects.values('category').distinct()
     for category in categories:
         write_data_to_file(category['category'], country)
