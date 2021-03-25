@@ -405,8 +405,8 @@ def start_crawling(country, number_of_pages=4):
                         product_details = fetch_products_details(driver, product_sku, product_url, category_name, category_url)
                         data.append(product_details)
                         number_of_sku = number_of_sku + 1
-                        print(number_of_sku)
-                        print(product_details)
+                        # print(number_of_sku)
+                        # print(product_details)
                     except Exception as error:
                         status['error_in_skus'] = product_sku + ' - ' + status['error_in_skus']
                         image_name = product_sku + '-' + str(random.random()).split('.')[1][0:8] + '.png'
@@ -661,7 +661,7 @@ def write_data_to_file(category_name, country):
             ] + inventory)
 
     data.insert(0, [category_name + '-' + country, ])
-    file_name = 'data/' + category_name + '-' + fetch_days[0].created_at.strftime('%d') + '.xlsx'
+    file_name = 'data/' + country + '/' + category_name + '-' + fetch_days[0].created_at.strftime('%d') + '.xlsx'
     df = pd.DataFrame.from_records(data)
     df.to_excel(file_name)
     return file_name
@@ -681,7 +681,7 @@ def upload_files_to_google_drive(file_name, country):
         folder_id = output_folder_ids[country]
         drive_service = login_google()
         file_metadata = {
-            'name': file_name.split('/')[1],
+            'name': file_name.split('/')[2],
             'parents': [folder_id]
         }
         media = MediaFileUpload(file_name, mimetype='application/vnd.openxmlformats-', resumable=True)
