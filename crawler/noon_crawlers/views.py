@@ -63,3 +63,13 @@ def get_input_files(request):
     return HttpResponse()
 
 
+def correction_countries(request):
+    products = Product.objects.all()
+    for each in products:
+        if 'uae-en' in each.listing_url:
+            each.country = 'UAE'
+        if 'saudi-en' in each.listing_url:
+            each.country = 'KSA'
+        each.save()
+    return HttpResponse()
+

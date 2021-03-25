@@ -15,4 +15,5 @@ urlpatterns = [
     path('get', views.get_input_files, name='get input files'),
     path('get/fetch/day', views.get_fetch_day, name='get fetch days count'),
     path('upload', views.upload_files_to_google, name='upload files to google drive'),
+    path('correct', views.correction_countries, name='country correction'),
 ]
