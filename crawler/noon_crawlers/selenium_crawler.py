@@ -486,7 +486,7 @@ def save_bandwidth_status(country='', start=False, id=None):
 
 def save_product_in_database(data, fetch_day, country):
     if Product.objects.filter(sku=str(data['product_sku']).strip(), country=country).exists():
-        product = Product.objects.get(sku=data['product_sku'])
+        product = Product.objects.get(sku=data['product_sku'], country=country)
         product.category = data['category_name']
         product.product_title = data['product_name']
         product.listing_url = data['product_url']
