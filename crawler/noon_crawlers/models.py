@@ -15,7 +15,7 @@ class FetchDay(models.Model):
 class Product(models.Model):
     country = models.CharField(max_length=50, null=True, blank=True)
     category = models.CharField(max_length=1000, null=True, blank=True)
-    sku = models.CharField(max_length=250, unique=True, null=True, blank=True)
+    sku = models.CharField(max_length=250, null=True, blank=True)
     product_title = models.CharField(max_length=1000, null=True, blank=True)
     listing_url = models.CharField(max_length=1000, null=True, blank=True)
     image_url = models.CharField(max_length=1000, null=True, blank=True)
