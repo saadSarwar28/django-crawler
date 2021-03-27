@@ -418,7 +418,8 @@ def start_crawling(country, number_of_pages=4):
                     product_urls.append(div.find_element_by_tag_name('a').get_attribute('href'))
                 for product_sku, product_url in zip(product_skus, product_urls):
                     try:
-                        product_details = fetch_products_details(driver, product_sku, product_url, category_name, category_url)
+                        product_details = fetch_products_details(driver, product_sku, product_url, category_name,
+                                                                 category_url)
                         data.append(product_details)
                         number_of_sku = number_of_sku + 1
                         # print(number_of_sku)
@@ -461,7 +462,7 @@ def save_remaining_products_days_by_category(category, fetch_day):
     for product in products:
         days = Day.objects.filter(product=product).count()
         if days < fetch_day:
-            Day(day_count=fetch_day, product=product).save()
+            Day(day_count=fetch_day, sold_quantity=-1, inventory=-1, product=product).save()
 
 
 def save_remaining_products_days():
@@ -470,7 +471,7 @@ def save_remaining_products_days():
     for product in products:
         days = Day.objects.filter(product=product).count()
         if days < fetch_day:
-            Day(day_count=fetch_day, product=product).save()
+            Day(day_count=fetch_day, sold_quantity=-1, inventory=-1, product=product).save()
 
 
 def save_bandwidth_status(country='', start=False, id=None):
@@ -515,10 +516,10 @@ def save_product_in_database(data, fetch_day, country):
         product.buy_box_Price = float(data['buy_box_price'])
         product.total_inventory = data['total_inventory']
         previous_days = Day.objects.filter(product=product).order_by('-day_count')
-        if data['total_inventory'] != 'error fetching inventory' and len(
-                Day.objects.filter(product=product)) > 0:
+        if data['total_inventory'] != 'error fetching inventory' and len(previous_days) > 0:
             if previous_days[0].inventory != 'error fetching inventory':
-                if int(data['total_inventory']) >= int(previous_days[0].inventory):
+                if int(data['total_inventory']) >= int(previous_days[0].inventory) or int(
+                        previous_days[0].inventory) == -1:
                     sold_quantity = 0
                 else:
                     sold_quantity = int(previous_days[0].inventory) - int(data['total_inventory'])
@@ -567,7 +568,7 @@ def save_product_in_database(data, fetch_day, country):
             if x == (fetch_day - 1):
                 Day(day_count=fetch_day, inventory=int(data['total_inventory']), product=new_product).save()
             else:
-                Day(day_count=x + 1, product=new_product).save()
+                Day(day_count=x + 1, sold_quantity=-1, inventory=-1, product=new_product).save()
 
 
 def write_status_report(country, status_report):
