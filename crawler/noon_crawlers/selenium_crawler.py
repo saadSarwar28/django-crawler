@@ -790,25 +790,25 @@ def send_email(country, categories_fetched, number_of_pages, number_of_sku):
             # After the file is closed
             part['Content-Disposition'] = 'attachment; filename="%s"' % basename(file)
             msg.attach(part)
-    try:
-        email_server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
-        debug_file.write('Server connected successfully.\n')
-        email_server.ehlo()
-        email_server.starttls()
-        email_server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
-        email_server.ehlo()
-        debug_file.write('Logged in successfully.\n')
-        smtp = smtplib.SMTP(email_server)
-        smtp.sendmail(settings.EMAIL_HOST_USER, [to, ], msg.as_string())
-        smtp.close()
+    # try:
+    email_server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
+    debug_file.write('Server connected successfully.\n')
+    email_server.ehlo()
+    email_server.starttls()
+    email_server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+    email_server.ehlo()
+    debug_file.write('Logged in successfully.\n')
+    smtp = smtplib.SMTP(email_server)
+    smtp.sendmail(settings.EMAIL_HOST_USER, [to, ], msg.as_string())
+    smtp.close()
         # recipient_list = [to, ]
         # message = """From: %s\nTo: %s\nSubject: %s\n\n%s
         #         """ % (settings.EMAIL_HOST_USER, ", ".join(recipient_list), subject, message)
         # email_server.sendmail(settings.EMAIL_HOST_USER, recipient_list, message)
         # email_server.close()
-        file.write('Email sent successfully.\n')
-    except Exception as error:
-        print(error)
-        debug_file.write('Error thrown.\n')
-        debug_file.write('Error details => ' + str(error) + '\n')
+        # file.write('Email sent successfully.\n')
+    # except Exception as error:
+    #     print(error)
+    #     debug_file.write('Error thrown.\n')
+    #     debug_file.write('Error details => ' + str(error) + '\n')
     debug_file.close()
