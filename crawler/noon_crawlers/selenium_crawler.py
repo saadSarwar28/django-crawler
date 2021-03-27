@@ -1,6 +1,8 @@
 from __future__ import print_function
 # import geckodriver_autoinstaller
 import smtplib
+
+import pyautogui
 from crawler import settings
 from apiclient import errors
 import datetime
@@ -278,19 +280,19 @@ def fetch_products_details(driver, product_sku, product_url, category_name, cate
 
 def initialize_firefox():
     # geckodriver_autoinstaller.install()
-    port = refresh_proxy_port()
-    PROXY = 'localhost:' + port
-    proxy = Proxy()
-    proxy.http_proxy = PROXY
-    proxy.ftp_proxy = PROXY
-    proxy.sslProxy = PROXY
+    # port = refresh_proxy_port()
+    # PROXY = 'localhost:' + port
+    # proxy = Proxy()
+    # proxy.http_proxy = PROXY
+    # proxy.ftp_proxy = PROXY
+    # proxy.sslProxy = PROXY
     # proxy.no_proxy = "localhost"  # etc... ;)
-    proxy.proxy_type = ProxyType.MANUAL
+    # proxy.proxy_type = ProxyType.MANUAL
     # limunati customer info
     # proxy.socksUsername = 'lum-customer-hl_768420d0-zone-static-country-ae'
     # proxy.socksPassword = 'auudw0lxh4pp'
     capabilities = webdriver.DesiredCapabilities.FIREFOX
-    proxy.add_to_capabilities(capabilities)
+    # proxy.add_to_capabilities(capabilities)
     driver_path = 'geckodriver.exe'
     # driver = webdriver.Chrome(desired_capabilities=capabilities)
     firefox_options = webdriver.FirefoxOptions()
@@ -302,7 +304,7 @@ def initialize_firefox():
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
     driver = webdriver.Firefox(
         executable_path=driver_path,
-        desired_capabilities=capabilities,
+        # desired_capabilities=capabilities,
         options=firefox_options,
         firefox_profile=firefox_profile
     )
@@ -332,37 +334,46 @@ def refresh_proxy_port():
 
 
 def initialize_chrome():
-    port = refresh_proxy_port()
-    PROXY = 'localhost:' + port
-    proxy = Proxy()
-    proxy.http_proxy = PROXY
-    proxy.ftp_proxy = PROXY
-    proxy.sslProxy = PROXY
-    proxy.no_proxy = "localhost"  # etc... ;)
-    proxy.proxy_type = ProxyType.MANUAL
-    capabilities = webdriver.DesiredCapabilities.CHROME
-    proxy.add_to_capabilities(capabilities)
+    # port = refresh_proxy_port()
+    # PROXY = 'localhost:' + port
+    # proxy = Proxy()
+    # proxy.http_proxy = PROXY
+    # proxy.ftp_proxy = PROXY
+    # proxy.sslProxy = PROXY
+    # proxy.no_proxy = "localhost"  # etc... ;)
+    # proxy.proxy_type = ProxyType.MANUAL
+    # capabilities = webdriver.DesiredCapabilities.CHROME
+    # proxy.add_to_capabilities(capabilities)
     driver_path = 'chromedriver.exe'
     chrome_options = webdriver.ChromeOptions()
-    prefs = {'profile.managed_default_content_settings.images': 2}
-    chrome_options.add_experimental_option('prefs', prefs)
+    chrome_options.add_extension('browsec.crx')
+    # prefs = {'profile.managed_default_content_settings.images': 2}
+    # chrome_options.add_experimental_option('prefs', prefs)
     # chrome_options.add_argument('--no-proxy-server')
-    chrome_options.add_argument("--proxy-server='direct://'");
-    chrome_options.add_argument("--proxy-bypass-list=*");
+    # chrome_options.add_argument("--proxy-server='direct://'");
+    # chrome_options.add_argument("--proxy-bypass-list=*");
     # chrome_options.add_argument('--headless')
     # chrome_options.add_argument('--no-sandbox') # required when running as root user.
     # otherwise you would get no sandbox errors.
     driver = webdriver.Chrome(
         executable_path=driver_path,
-        desired_capabilities=capabilities,
+        # desired_capabilities=capabilities,
         options=chrome_options
     )
+    time.sleep(10)
+    pyautogui.click(pyautogui.locateCenterOnScreen('browsec_icon.png', grayscale=False))
+    time.sleep(5)
+    pyautogui.click(pyautogui.locateCenterOnScreen('browsec_turn_on.png', grayscale=False))
+    time.sleep(10)
+    driver.switch_to.window(driver.window_handles[1])
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
     return driver
 
 
 def start_crawling(country, number_of_pages=4):
     fetch_day = get_fetch_day_count()
-    proxy_port_id = save_bandwidth_status(country=country, start=True)
+    # proxy_port_id = save_bandwidth_status(country=country, start=True)
     input_file = get_input_file(country)
     category_list, urls = input_file['category_list'], input_file['urls']
     categories_fetched = len(category_list)
@@ -373,7 +384,7 @@ def start_crawling(country, number_of_pages=4):
         if category_name == 'home and kitchen':
             continue
         data = []
-        driver = initialize_firefox()
+        driver = initialize_chrome()
         status = {
             'category': category_name,
             'url': category_url,
@@ -390,7 +401,7 @@ def start_crawling(country, number_of_pages=4):
                 driver.get(category_url + '?page=' + str(x) + '&limit=60')
             except Exception as error:
                 print('Error getting url => ' + str(error))
-                driver = initialize_firefox()
+                driver = initialize_chrome()
                 driver.get(category_url + '?page=' + str(x) + '&limit=60')
             time.sleep(2)
             # fetching divs of all products
@@ -435,7 +446,7 @@ def start_crawling(country, number_of_pages=4):
         upload_files_to_google_drive(file_name, country)
         status_report.append(status)
     write_status_report(country, status_report)
-    save_bandwidth_status(id=proxy_port_id)
+    # save_bandwidth_status(id=proxy_port_id)
     send_email(country, categories_fetched, number_of_pages, number_of_sku)
     delete_previous_files_from_google_drive()
 

@@ -7,12 +7,12 @@ from .selenium_crawler import *
 
 
 def crawl_uae(request):
-    start_crawling('UAE', number_of_pages=3)
+    start_crawling('UAE', number_of_pages=2)
     return HttpResponse()
 
 
 def crawl_ksa(request):
-    start_crawling('KSA', number_of_pages=3)
+    start_crawling('KSA', number_of_pages=2)
     return HttpResponse()
 
 
