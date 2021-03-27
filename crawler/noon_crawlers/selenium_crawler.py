@@ -361,9 +361,9 @@ def initialize_chrome():
         options=chrome_options
     )
     time.sleep(10)
-    pyautogui.click(pyautogui.locateCenterOnScreen('browsec_icon.png', grayscale=False))
+    pyautogui.click(pyautogui.locateCenterOnScreen('browsec_icon.png'))
     time.sleep(5)
-    pyautogui.click(pyautogui.locateCenterOnScreen('browsec_turn_on.png', grayscale=False))
+    pyautogui.click(pyautogui.locateCenterOnScreen('browsec_turn_on.png'))
     time.sleep(10)
     driver.switch_to.window(driver.window_handles[1])
     driver.close()
