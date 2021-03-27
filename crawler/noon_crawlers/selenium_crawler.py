@@ -1,7 +1,11 @@
 from __future__ import print_function
 # import geckodriver_autoinstaller
 import smtplib
-
+from os.path import basename
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import COMMASPACE, formatdate
 import pyautogui
 from crawler import settings
 from apiclient import errors
@@ -21,11 +25,12 @@ from selenium.webdriver.common.keys import Keys
 import time
 import pandas as pd
 # from http_request_randomizer.requests.proxy.requestProxy import RequestProxy
-# import os
+import os
 import requests
 import csv
 from .models import *
 from .google_drive_api_login import login_google
+import pathlib
 
 BASE_URL_SAUDI = 'https://www.noon.com/saudi-en/'
 BASE_URL_UAE = 'https://www.noon.com/uae-en/'
@@ -743,7 +748,7 @@ def bytesto(bytes, to, bsize=1024):
 def send_email(country, categories_fetched, number_of_pages, number_of_sku):
     to = 'noondata2021@gmail.com'
     subject = 'Noon Scraping Status Report for ' + str(country)
-    proxy_port = ProxyPorts.objects.filter(site=country).latest('id')
+    # proxy_port = ProxyPorts.objects.filter(site=country).latest('id')
     message = 'Scraping for ' + datetime.datetime.now().strftime('%D') + ' has finished. Please check you google ' \
                                                                          'drive for updated files.\n'
     message = message + 'Scrapping details. \n'
@@ -751,26 +756,55 @@ def send_email(country, categories_fetched, number_of_pages, number_of_sku):
     message = message + 'Number of pages scraped per category : ' + str(number_of_pages) + '\n'
     message = message + 'Number of SKUs per category : ' + str(number_of_pages * 50) + '\n'
     message = message + 'Total Number of SKUs fetched per site : ' + str(number_of_sku) + '\n'
-    message = message + 'Bandwidth utilized : ' + str(proxy_port.bandwidth_utilized) + '\n'
-    message = message + 'Time taken : ' + str(proxy_port.updated_at - proxy_port.created_at).split('.')[0] + \
-              '(hour/minute/second)\n\n'
+    # message = message + 'Bandwidth utilized : ' + str(proxy_port.bandwidth_utilized) + '\n'
+    # message = message + 'Time taken : ' + str(proxy_port.updated_at - proxy_port.created_at).split('.')[0] + \
+    #           '(hour/minute/second)\n\n'
     message = message + '<=======================>'
     file = open('email-debug.txt', 'at')
     file.write('From = ' + str(settings.EMAIL_HOST_USER) + '\n')
     file.write('To = ' + str(to) + '\n')
+
+    msg = MIMEMultipart()
+    msg['From'] = settings.EMAIL_HOST_USER
+    msg['To'] = to
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(message))
+    one_directory_up = os.path.join(pathlib.Path(__file__).parent.absolute(), '../')
+    data_folder = os.path.join(one_directory_up, 'data')
+    country_folder = os.path.join(data_folder, country)
+    files = os.listdir(country_folder)
+    latest_day = 0
+    for each in files:
+        if int(each.split('-')[1].split('.')[0]) > latest_day:
+            latest_day = int(each.split('-')[1].split('.')[0])
+    for file in files or []:
+        if int(file.split('-')[1].split('.')[0]) == latest_day:
+            with open(file, "rb") as selected_file:
+                part = MIMEApplication(
+                    selected_file.read(),
+                    Name=basename(file)
+                )
+            # After the file is closed
+            part['Content-Disposition'] = 'attachment; filename="%s"' % basename(file)
+            msg.attach(part)
     try:
         email_server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
         file.write('Server connected successfully.\n')
         email_server.ehlo()
         email_server.starttls()
         email_server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
-        file.write('Logged in successfully.\n')
         email_server.ehlo()
-        recipient_list = [to, ]
-        message = """From: %s\nTo: %s\nSubject: %s\n\n%s
-                """ % (settings.EMAIL_HOST_USER, ", ".join(recipient_list), subject, message)
-        email_server.sendmail(settings.EMAIL_HOST_USER, recipient_list, message)
-        email_server.close()
+        file.write('Logged in successfully.\n')
+        smtp = smtplib.SMTP(email_server)
+        smtp.sendmail(settings.EMAIL_HOST_USER, [to, ], msg.as_string())
+        smtp.close()
+        # recipient_list = [to, ]
+        # message = """From: %s\nTo: %s\nSubject: %s\n\n%s
+        #         """ % (settings.EMAIL_HOST_USER, ", ".join(recipient_list), subject, message)
+        # email_server.sendmail(settings.EMAIL_HOST_USER, recipient_list, message)
+        # email_server.close()
         file.write('Email sent successfully.\n')
     except Exception as error:
         print(error)

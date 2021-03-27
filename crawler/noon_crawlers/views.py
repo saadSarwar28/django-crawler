@@ -37,7 +37,7 @@ def save_remaining_products_by_category(request):
 
 
 def send_email_gmail(request):
-    send_email('KSA', 10, 4)
+    send_email('KSA', 10, 4, 400)
     return HttpResponse()
 
 
