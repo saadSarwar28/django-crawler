@@ -781,7 +781,7 @@ def send_email(country, categories_fetched, number_of_pages, number_of_sku):
             latest_day = int(each.split('-')[1].split('.')[0])
     for file in files or []:
         if int(file.split('-')[1].split('.')[0]) == latest_day:
-            with open(file, "rb") as selected_file:
+            with open('data/' + country + '/' + file, "rb") as selected_file:
                 part = MIMEApplication(
                     selected_file.read(),
                     Name=basename(file)
