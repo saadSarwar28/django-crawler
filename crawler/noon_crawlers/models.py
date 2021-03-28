@@ -62,3 +62,14 @@ class FilesToDelete(models.Model):
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
 
+
+class Category(models.Model):
+    name = models.CharField(max_length=300, null=True, blank=True)
+    country = models.CharField(max_length=200, null=True, blank=True)
+    fetch_day_count = models.IntegerField(default=0, null=True, blank=True)
+    num_of_pages_scraped = models.IntegerField(default=0)
+    num_of_skus = models.IntegerField(default=0)
+    fully_scraped = models.BooleanField(default=False)
+    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateField(auto_now=True)
+

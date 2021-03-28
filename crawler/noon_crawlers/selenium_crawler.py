@@ -376,35 +376,24 @@ def initialize_chrome():
     return driver
 
 
+def check_category_already_scraped(category_name, country, fetch_day):
+    if Category.objects.filter(name=category_name, country=country, fetch_day_count=fetch_day).exists():
+        return True
+    return False
+
+
 def start_crawling(country, number_of_pages=4):
     fetch_day = get_fetch_day_count()
     # proxy_port_id = save_bandwidth_status(country=country, start=True)
     input_file = get_input_file(country)
     category_list, urls = input_file['category_list'], input_file['urls']
-    categories_fetched = len(category_list)
     status_report = []
     today = datetime.datetime.now().strftime('%D')
     number_of_sku = 0
     for category_url, category_name in zip(urls, category_list):
-        if country == 'KSA' and category_name == 'kitchen and dining':
+        if check_category_already_scraped(category_name, country, fetch_day):
             continue
-        if country == 'KSA' and category_name == 'kitchen utensils and gadgets':
-            continue
-        if country == 'KSA' and category_name == 'mobiles and accesories':
-            continue
-        if country == 'KSA' and category_name == 'safety and security':
-            continue
-        if country == 'UAE' and category_name == 'accesories and supplies':
-            continue
-        if country == 'UAE' and category_name == 'kitchen and dining':
-            continue
-        if country == 'UAE' and category_name == 'mobiles and accesories':
-            continue
-        if country == 'UAE' and category_name == 'Tools and home improvement':
-            continue
-
         data = []
-        driver = initialize_chrome()
         status = {
             'category': category_name,
             'url': category_url,
@@ -414,10 +403,11 @@ def start_crawling(country, number_of_pages=4):
             'error': '',
             'error_image': ''
         }
-        # scrap first ten pages
+        # scrap first two pages
         for x in range(1, number_of_pages + 1):
             status['pages_scrapped'] = str(x)
             try:
+                driver = initialize_chrome()
                 driver.get(category_url + '?page=' + str(x) + '&limit=60')
             except Exception as error:
                 print('Error getting url => ' + str(error))
@@ -466,9 +456,11 @@ def start_crawling(country, number_of_pages=4):
         file_name = write_data_to_file(category_name, country)
         upload_files_to_google_drive(file_name, country)
         status_report.append(status)
+        Category(name=category_name, fetch_day_count=fetch_day, num_of_skus=number_of_sku, fully_scraped=True,
+                 num_of_pages_scraped=number_of_pages).save()
     write_status_report(country, status_report)
     # save_bandwidth_status(id=proxy_port_id)
-    send_email(country, categories_fetched, number_of_pages, number_of_sku)
+    # send_email(country, number_of_pages, number_of_sku)
     delete_previous_files_from_google_drive()
 
 
