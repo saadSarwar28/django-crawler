@@ -458,6 +458,7 @@ def start_crawling(country, number_of_pages=4):
         for each_product in data:
             save_product_in_database(each_product, fetch_day, country)
         save_remaining_products_days_by_category(category_name, fetch_day)
+        calculate_sold_quantities(category_name, country)
         file_name = write_data_to_file(category_name, country)
         upload_files_to_google_drive(file_name, country)
         status_report.append(status)
@@ -528,35 +529,10 @@ def save_product_in_database(data, fetch_day, country):
         product.buy_box_Price = float(data['buy_box_price'])
         product.total_inventory = data['total_inventory']
         previous_days = Day.objects.filter(product=product).order_by('-day_count')
-        if data['total_inventory'] != 'error fetching inventory' and len(previous_days) > 0:
-            if previous_days[0].inventory != 'error fetching inventory':
-                if int(data['total_inventory']) >= int(previous_days[0].inventory) or int(
-                        previous_days[0].inventory) == -1:
-                    sold_quantity = 0
-                else:
-                    sold_quantity = int(previous_days[0].inventory) - int(data['total_inventory'])
-            else:
-                sold_quantity = 0
-        else:
-            sold_quantity = 0
-        previous_days[0].sold_quantity = sold_quantity
-        previous_days[0].save()
-        product.sold_quantity_last_day = sold_quantity
-        index = 0
-        total_sold = 0
-        if len(previous_days) > 5:
-            for day in previous_days:
-                total_sold = total_sold + day.sold_quantity
-                if index == 6:
-                    product.sold_quantity_last_7_day = total_sold
-                if index == 29:
-                    product.sold_quantity_last_30_day = total_sold
-                index = index + 1
         product.save()
         if len(previous_days) < fetch_day:
             Day(day_count=len(previous_days) + 1, inventory=int(data['total_inventory']), product=product).save()
         else:
-            previous_days[0].sold_quantity = sold_quantity
             previous_days[0].inventory = int(data['total_inventory'])
             previous_days[0].save()
     else:
@@ -581,6 +557,41 @@ def save_product_in_database(data, fetch_day, country):
                 Day(day_count=fetch_day, inventory=int(data['total_inventory']), product=new_product).save()
             else:
                 Day(day_count=x + 1, sold_quantity=-1, inventory=-1, product=new_product).save()
+
+
+def calculate_sold_quantities(category_name, country):
+    products = Product.objects.filter(category=category_name, country=country)
+    for product in products:
+        previous_days = Day.objects.filter(product=product).order_by('day_count')
+        previous_day_inventory = 0
+        for index, day in enumerate(previous_days):
+            if index == 0:
+                previous_day_inventory = day.inventory
+                continue
+            if (day.inventory == 'error fetching inventory' or day.inventory == -1) or (
+                    previous_day_inventory == 'error fetching inventory' or previous_day_inventory == -1):
+                day.sold_quantity = -1
+                day.save()
+                previous_day_inventory = day.inventory
+                continue
+            if day.inventory >= previous_day_inventory:
+                day.sold_quantity = 0
+                day.save()
+                previous_day_inventory = day.inventory
+                continue
+            day.sold_quantity = day.inventory - previous_day_inventory
+            day.save()
+            previous_day_inventory = day.inventory
+
+        total_sold = 0
+        if len(previous_days) > 5:
+            for index, day in enumerate(previous_days):
+                total_sold = total_sold + day.sold_quantity
+                if index == 6:
+                    product.sold_quantity_last_7_day = total_sold
+                if index == 29:
+                    product.sold_quantity_last_30_day = total_sold
+        product.save()
 
 
 def write_status_report(country, status_report):
