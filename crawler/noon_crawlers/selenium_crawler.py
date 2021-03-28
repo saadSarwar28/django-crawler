@@ -386,8 +386,23 @@ def start_crawling(country, number_of_pages=4):
     today = datetime.datetime.now().strftime('%D')
     number_of_sku = 0
     for category_url, category_name in zip(urls, category_list):
-        if category_name == 'home and kitchen':
+        if country == 'KSA' and category_name == 'kitchen and dining':
             continue
+        if country == 'KSA' and category_name == 'kitchen utensils and gadgets':
+            continue
+        if country == 'KSA' and category_name == 'mobiles and accesories':
+            continue
+        if country == 'KSA' and category_name == 'safety and security':
+            continue
+        if country == 'UAE' and category_name == 'accesories and supplies':
+            continue
+        if country == 'UAE' and category_name == 'kitchen and dining':
+            continue
+        if country == 'UAE' and category_name == 'mobiles and accesories':
+            continue
+        if country == 'UAE' and category_name == 'Tools and home improvement':
+            continue
+
         data = []
         driver = initialize_chrome()
         status = {
