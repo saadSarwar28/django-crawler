@@ -365,6 +365,11 @@ def initialize_chrome():
         # desired_capabilities=capabilities,
         options=chrome_options
     )
+    driver = enable_browsec(driver)
+    return driver
+
+
+def enable_browsec(driver):
     time.sleep(10)
     pyautogui.click(pyautogui.locateCenterOnScreen('browsec_icon.png', confidence=0.9))
     time.sleep(5)
