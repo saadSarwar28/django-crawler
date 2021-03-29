@@ -351,21 +351,22 @@ def initialize_chrome():
     # proxy.add_to_capabilities(capabilities)
     driver_path = 'chromedriver.exe'
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_extension('browsec.crx')
+    # chrome_options.add_extension('browsec.crx')
     # prefs = {'profile.managed_default_content_settings.images': 2}
     # chrome_options.add_experimental_option('prefs', prefs)
     # chrome_options.add_argument('--no-proxy-server')
     # chrome_options.add_argument("--proxy-server='direct://'");
     # chrome_options.add_argument("--proxy-bypass-list=*");
     # chrome_options.add_argument('--headless')
-    # chrome_options.add_argument('--no-sandbox') # required when running as root user.
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
+    chrome_options.add_argument('--no-sandbox') # required when running as root user.
     # otherwise you would get no sandbox errors.
     driver = webdriver.Chrome(
         executable_path=driver_path,
         # desired_capabilities=capabilities,
         options=chrome_options
     )
-    driver = enable_browsec(driver)
+    # driver = enable_browsec(driver)
     return driver
 
 
@@ -413,7 +414,7 @@ def start_crawling(country, number_of_pages=4):
             status['pages_scrapped'] = str(x)
             try:
                 driver = initialize_chrome()
-                driver.get(category_url + '?page=' + str(x) + '&limit=60')
+                driver.get(category_url + '?page=' + str(x) + '&limit=55')
             except Exception as error:
                 print('Error getting url => ' + str(error))
                 driver = initialize_chrome()
@@ -462,8 +463,8 @@ def start_crawling(country, number_of_pages=4):
         file_name = write_data_to_file(category_name, country)
         upload_files_to_google_drive(file_name, country)
         status_report.append(status)
-        Category(name=category_name, fetch_day_count=fetch_day, num_of_skus=number_of_sku, fully_scraped=True,
-                 num_of_pages_scraped=number_of_pages).save()
+        Category(name=category_name, country=country, fetch_day_count=fetch_day, num_of_skus=number_of_sku,
+                 fully_scraped=True, num_of_pages_scraped=number_of_pages).save()
     write_status_report(country, status_report)
     # save_bandwidth_status(id=proxy_port_id)
     # send_email(country, number_of_pages, number_of_sku)
@@ -586,6 +587,8 @@ def calculate_sold_quantities(category_name, country):
         total_sold = 0
         if len(previous_days) > 5:
             for index, day in enumerate(previous_days):
+                if day.sold_quantity == -1 or day.sold_quantity == 'error fetching inventory':
+                    continue
                 total_sold = total_sold + day.sold_quantity
                 if index == 6:
                     product.sold_quantity_last_7_day = total_sold
