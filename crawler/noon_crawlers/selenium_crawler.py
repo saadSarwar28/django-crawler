@@ -461,14 +461,14 @@ def start_crawling(country, number_of_pages=4):
         save_remaining_products_days_by_category(category_name, country, fetch_day)
         calculate_sold_quantities(category_name, country)
         file_name = write_data_to_file(category_name, country)
-        upload_files_to_google_drive(file_name, country)
+        # upload_files_to_google_drive(file_name, country)
         status_report.append(status)
         Category(name=category_name, country=country, fetch_day_count=fetch_day, num_of_skus=number_of_sku,
                  fully_scraped=True, num_of_pages_scraped=number_of_pages).save()
     write_status_report(country, status_report)
     # save_bandwidth_status(id=proxy_port_id)
     # send_email(country, number_of_pages, number_of_sku)
-    delete_previous_files_from_google_drive()
+    # delete_previous_files_from_google_drive()
 
 
 def save_remaining_products_days_by_category(category, country, fetch_day):
