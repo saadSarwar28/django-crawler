@@ -3,6 +3,7 @@ from .models import *
 from django.http import HttpResponse
 from django.shortcuts import render
 from .selenium_crawler import *
+from .google_drive_handler import *
 # Create your views here.
 
 
@@ -51,7 +52,9 @@ def write_data(request):
 
 
 def upload_files_to_google(request):
-    upload_files_to_google_drive('data/UAE/accesories and supplies-24.xlsx', 'UAE')
+    upload_files_to_google_drive('UAE')
+    time.sleep(10)
+    upload_files_to_google_drive('KSA')
     return HttpResponse()
 
 

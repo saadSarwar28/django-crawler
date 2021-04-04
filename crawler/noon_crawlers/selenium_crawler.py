@@ -719,44 +719,6 @@ def write_data_to_file(category_name, country):
     #         writer.writerow(row)
 
 
-def upload_files_to_google_drive(file_name, country):
-    debug_file = open('debug/file-upload-debug.txt', 'at', encoding='utf-8')
-    debug_file.write('file name : ' + str(file_name) + '\n')
-    try:
-        folder_id = output_folder_ids[country]
-        drive_service = login_google()
-        file_metadata = {
-            'name': file_name.split('/')[2],
-            'parents': [folder_id]
-        }
-        media = MediaFileUpload(file_name, mimetype='application/vnd.openxmlformats-', resumable=True)
-        file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-        debug_file.write('File uploaded successfully\n')
-        FilesToDelete(file_id=file['id']).save()
-    except Exception as error:
-        debug_file.write('Error while uploading file\n')
-        debug_file.write('Error : ' + str(error) + '\n')
-    debug_file.write('=============================\n')
-    debug_file.close()
-
-
-def delete_previous_files_from_google_drive():
-    debug_file = open('debug/debug-delete-files.txt', 'at', encoding='utf-8')
-    drive_service = login_google()
-    files = FilesToDelete.objects.filter(created_at__lt=datetime.datetime.now().date())
-    try:
-        for file in files:
-            debug_file.write('File id : ' + str(file.file_id) + '\n')
-            drive_service.files().delete(fileId=file.file_id).execute()
-            file.delete()
-            debug_file.write('File deleted successfully\n')
-    except Exception as error:
-        debug_file.write('File delete errored out\n')
-        debug_file.write(str(error) + '\n')
-    debug_file.write('================================\n')
-    debug_file.close()
-
-
 def log_sku_errors(sku_errors):
     file = open('debug/sku/sku_errors.csv', 'at', encoding='utf-8')
     if file.tell() == 0:
