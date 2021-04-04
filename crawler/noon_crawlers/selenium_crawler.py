@@ -143,9 +143,9 @@ def get_inventory_details(driver):
         return 1
     time.sleep(1)
     total_inventory = len(driver.find_elements_by_xpath('//div[contains(@id, "react-select-")]'))
-    id = 'react-select-selectBoxFromComponent-option-' + str(total_inventory - 1)
-    last_scroll_ele = driver.find_element_by_id(id)
-    driver.execute_script("return arguments[0].scrollIntoView(true);", last_scroll_ele)
+    # id = 'react-select-selectBoxFromComponent-option-' + str(total_inventory - 1)
+    # last_scroll_ele = driver.find_element_by_id(id)
+    # driver.execute_script("return arguments[0].scrollIntoView(true);", last_scroll_ele)
     # last_scroll_ele.click()
     time.sleep(1)
     # add_to_cart_button = driver.find_element_by_class_name('cart-button')
@@ -433,8 +433,8 @@ def start_crawling(country, number_of_pages=4):
                                                                  category_url)
                         data.append(product_details)
                         number_of_sku = number_of_sku + 1
-                        # print(number_of_sku)
-                        # print(product_details)
+                        print(number_of_sku)
+                        print(product_details)
                     except Exception as error:
                         status['error_in_skus'] = product_sku + ' - ' + status['error_in_skus']
                         image_name = product_sku + '-' + str(random.random()).split('.')[1][0:8] + '.png'
@@ -458,7 +458,7 @@ def start_crawling(country, number_of_pages=4):
             pass
         for each_product in data:
             save_product_in_database(each_product, fetch_day, country)
-        save_remaining_products_days_by_category(category_name, fetch_day)
+        save_remaining_products_days_by_category(category_name, country, fetch_day)
         calculate_sold_quantities(category_name, country)
         file_name = write_data_to_file(category_name, country)
         upload_files_to_google_drive(file_name, country)
@@ -471,8 +471,8 @@ def start_crawling(country, number_of_pages=4):
     delete_previous_files_from_google_drive()
 
 
-def save_remaining_products_days_by_category(category, fetch_day):
-    products = Product.objects.filter(category=category)
+def save_remaining_products_days_by_category(category, country, fetch_day):
+    products = Product.objects.filter(category=category, country=country)
     for product in products:
         days = Day.objects.filter(product=product).count()
         if days < fetch_day:
@@ -580,7 +580,7 @@ def calculate_sold_quantities(category_name, country):
                 day.save()
                 previous_day_inventory = day.inventory
                 continue
-            day.sold_quantity = day.inventory - previous_day_inventory
+            day.sold_quantity = previous_day_inventory - day.inventory
             day.save()
             previous_day_inventory = day.inventory
 
@@ -772,16 +772,21 @@ def bytesto(bytes, to, bsize=1024):
     return bytes / (bsize ** a[to])
 
 
-def send_email(country, categories_fetched, number_of_pages, number_of_sku):
+def send_email(country):
     to = 'noondata2021@gmail.com'
     subject = 'Noon Scraping Status Report for ' + str(country)
+    fetch_day = get_fetch_day_count()
+    categories = Category.objects.filter(country=country, fetch_day_count=fetch_day)
+    number_of_sku = 0
+    for each in categories:
+        number_of_sku = each.num_of_skus + number_of_sku
     # proxy_port = ProxyPorts.objects.filter(site=country).latest('id')
     message = 'Scraping for ' + datetime.datetime.now().strftime('%D') + ' has finished. Please check you google ' \
                                                                          'drive for updated files.\n'
     message = message + 'Scrapping details. \n'
-    message = message + 'Number of categories fetched : ' + str(categories_fetched) + '\n'
-    message = message + 'Number of pages scraped per category : ' + str(number_of_pages) + '\n'
-    message = message + 'Number of SKUs per category : ' + str(number_of_pages * 50) + '\n'
+    message = message + 'Number of categories fetched : ' + str(len(categories)) + '\n'
+    message = message + 'Number of pages scraped per category : ' + str(2) + '\n'
+    message = message + 'Targeted Number of SKUs per category : ' + str(2 * 50) + '\n'
     message = message + 'Total Number of SKUs fetched per site : ' + str(number_of_sku) + '\n'
     # message = message + 'Bandwidth utilized : ' + str(proxy_port.bandwidth_utilized) + '\n'
     # message = message + 'Time taken : ' + str(proxy_port.updated_at - proxy_port.created_at).split('.')[0] + \
