@@ -395,7 +395,6 @@ def start_crawling(country, number_of_pages=4):
     category_list, urls = input_file['category_list'], input_file['urls']
     status_report = []
     today = datetime.datetime.now().strftime('%D')
-    number_of_sku = 0
     for category_url, category_name in zip(urls, category_list):
         if check_category_already_scraped(category_name, country, fetch_day):
             continue
@@ -410,6 +409,7 @@ def start_crawling(country, number_of_pages=4):
             'error_image': ''
         }
         # scrap first two pages
+        number_of_sku = 0
         for x in range(1, number_of_pages + 1):
             status['pages_scrapped'] = str(x)
             try:
@@ -749,7 +749,7 @@ def send_email(country):
     message = message + 'Number of categories fetched : ' + str(len(categories)) + '\n'
     message = message + 'Number of pages scraped per category : ' + str(2) + '\n'
     message = message + 'Targeted Number of SKUs per category : ' + str(2 * 50) + '\n'
-    message = message + 'Total Number of SKUs fetched per site : ' + str(number_of_sku) + '\n'
+    message = message + 'Total Number of SKUs fetched for site ' + country + ' : ' + str(number_of_sku) + '\n'
     # message = message + 'Bandwidth utilized : ' + str(proxy_port.bandwidth_utilized) + '\n'
     # message = message + 'Time taken : ' + str(proxy_port.updated_at - proxy_port.created_at).split('.')[0] + \
     #           '(hour/minute/second)\n\n'
