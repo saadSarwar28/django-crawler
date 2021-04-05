@@ -563,36 +563,37 @@ def save_product_in_database(data, fetch_day, country):
 def calculate_sold_quantities(category_name, country):
     products = Product.objects.filter(category=category_name, country=country)
     for product in products:
-        previous_days = Day.objects.filter(product=product).order_by('day_count')
-        previous_day_inventory = 0
+        previous_days = Day.objects.filter(month=datetime.datetime.now().date().strftime('%B'),
+                                           product=product).order_by('day_count')
+        previous_day = None
         for index, day in enumerate(previous_days):
             if index == 0:
-                previous_day_inventory = day.inventory
+                previous_day = day
                 continue
             if (day.inventory == 'error fetching inventory' or day.inventory == -1) or (
-                    previous_day_inventory == 'error fetching inventory' or previous_day_inventory == -1):
+                    previous_day.inventory == 'error fetching inventory' or previous_day.inventory == -1):
                 day.sold_quantity = -1
                 day.save()
-                previous_day_inventory = day.inventory
+                previous_day = day
                 continue
-            if day.inventory >= previous_day_inventory:
+            if day.inventory >= previous_day.inventory:
                 day.sold_quantity = 0
                 day.save()
-                previous_day_inventory = day.inventory
+                previous_day = day
                 continue
-            day.sold_quantity = previous_day_inventory - day.inventory
-            day.save()
-            previous_day_inventory = day.inventory
+            previous_day.sold_quantity = previous_day.inventory - day.inventory
+            previous_day.save()
+            previous_day = day
 
         total_sold = 0
-        if len(previous_days) > 5:
+        if len(previous_days) > 6:
             for index, day in enumerate(previous_days):
                 if day.sold_quantity == -1 or day.sold_quantity == 'error fetching inventory':
                     continue
                 total_sold = total_sold + day.sold_quantity
-                if index == 6:
+                if index == 7:
                     product.sold_quantity_last_7_day = total_sold
-                if index == 29:
+                if index == 30:
                     product.sold_quantity_last_30_day = total_sold
         product.save()
 
