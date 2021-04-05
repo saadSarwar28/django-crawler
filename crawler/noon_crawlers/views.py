@@ -44,10 +44,9 @@ def send_email_gmail(request):
 
 
 def write_data(request):
-    country = request.GET.get('country')
-    categories = Product.objects.values('category').distinct()
+    categories = Product.objects.values('category', 'country').distinct()
     for category in categories:
-        write_data_to_file(category['category'], country)
+        write_data_to_file(category['category'], category['country'])
     return HttpResponse()
 
 
