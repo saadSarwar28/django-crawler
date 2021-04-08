@@ -767,24 +767,17 @@ def send_email(country):
     msg['Subject'] = subject
 
     msg.attach(MIMEText(message))
-    one_directory_up = os.path.join(pathlib.Path(__file__).parent.absolute(), '../')
-    data_folder = os.path.join(one_directory_up, 'data')
-    country_folder = os.path.join(data_folder, country)
-    files = os.listdir(country_folder)
-    latest_day = 0
-    for each in files:
-        if int(each.split('-')[1].split('.')[0]) > latest_day:
-            latest_day = int(each.split('-')[1].split('.')[0])
+
+    files = os.listdir('data/' + country)
     for file in files or []:
-        if int(file.split('-')[1].split('.')[0]) == latest_day:
-            with open('data/' + country + '/' + file, "rb") as selected_file:
-                part = MIMEApplication(
-                    selected_file.read(),
-                    Name=basename(file)
-                )
-            # After the file is closed
-            part['Content-Disposition'] = 'attachment; filename="%s"' % basename(file)
-            msg.attach(part)
+        with open('data/' + country + '/' + file, "rb") as selected_file:
+            part = MIMEApplication(
+                selected_file.read(),
+                Name=basename(file)
+            )
+        # After the file is closed
+        part['Content-Disposition'] = 'attachment; filename="%s"' % basename(file)
+        msg.attach(part)
     try:
         email_server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
         debug_file.write('Server connected successfully.\n')
