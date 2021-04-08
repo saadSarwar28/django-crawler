@@ -572,16 +572,16 @@ def calculate_sold_quantities(category_name, country):
                 continue
             if (day.inventory == 'error fetching inventory' or day.inventory == -1) or (
                     previous_day.inventory == 'error fetching inventory' or previous_day.inventory == -1):
-                day.sold_quantity = -1
-                day.save()
+                previous_day.sold_quantity = -1
+                previous_day.save()
                 previous_day = day
                 continue
             if day.inventory >= previous_day.inventory:
-                day.sold_quantity = 0
-                day.save()
+                previous_day.sold_quantity = 0
+                previous_day.save()
                 previous_day = day
                 continue
-            previous_day.sold_quantity = previous_day.inventory - day.inventory
+            previous_day.sold_quantity=previous_day.inventory - day.inventory
             previous_day.save()
             previous_day = day
 

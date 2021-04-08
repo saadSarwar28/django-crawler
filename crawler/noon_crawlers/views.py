@@ -79,8 +79,7 @@ def correction_countries(request):
 
 
 def rectify_sold_quantities(request):
-    categories = Product.objects.values('category').distinct()
+    categories = Product.objects.values('category', 'country').distinct()
     for category in categories:
-        calculate_sold_quantities(category, 'KSA')
-        calculate_sold_quantities(category, 'UAE')
+        calculate_sold_quantities(category['category'], category['country'])
     return HttpResponse()
