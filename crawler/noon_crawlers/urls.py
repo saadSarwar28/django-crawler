@@ -9,6 +9,7 @@ urlpatterns = [
     path('save/remaining/days', views.save_remaining_products, name='save remaining products days'),
     path('delete', views.delete_files_from_google, name='delete files from google drive'),
     path('upload', views.upload_files_to_google, name='upload files to google drive'),
+    path('move', views.move_files_to_backup, name='move files to backup folder'),
     # test functions
     path('save/remaining/days/by/category', views.save_remaining_products_by_category, name='save remaining products days'),
     path('write', views.write_data, name='write data to files'),

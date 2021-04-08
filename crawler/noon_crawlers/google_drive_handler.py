@@ -29,13 +29,18 @@ def upload_files_to_google_drive(country):
             )
             uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
             debug_file.write('File uploaded successfully\n')
-            shutil.move('data/' + country + '/' + file, 'backup/' + country)
             FilesToDelete(file_id=uploaded_file['id']).save()
         except Exception as error:
             debug_file.write('Error while uploading file\n')
             debug_file.write('Error : ' + str(error) + '\n')
         debug_file.write('=============================\n')
     debug_file.close()
+
+
+def move_files_to_backup_folder(country):
+    files_to_move = os.listdir('data/' + country)
+    for file in files_to_move:
+        shutil.move('data/' + country + '/' + file, 'backup/' + country)
 
 
 def delete_previous_files_from_google_drive():

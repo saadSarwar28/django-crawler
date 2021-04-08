@@ -62,6 +62,12 @@ def delete_files_from_google(request):
     return HttpResponse()
 
 
+def move_files_to_backup(request):
+    move_files_to_backup_folder('KSA')
+    move_files_to_backup_folder('UAE')
+    return HttpResponse()
+
+
 def get_input_files(request):
     print(get_input_file('UAE'))
     return HttpResponse()
