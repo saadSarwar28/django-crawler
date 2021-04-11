@@ -132,21 +132,25 @@ def get_input_file(file_key):
     return {'category_list': category_list, 'urls': urls}
 
 
-def get_inventory_details(driver):
+def get_inventory_details(driver, sku):
+    time.sleep(1)
+    driver.execute_script("window.scrollTo(0, 200);")
     time.sleep(1)
     try:
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//div[@id='selectBoxFromComponent']"))
         ).click()
+        total_inventory = len(driver.find_elements_by_xpath('//div[contains(@id, "react-select-")]'))
+        id = 'react-select-selectBoxFromComponent-option-' + str(total_inventory - 1)
+        last_scroll_ele = driver.find_element_by_id(id)
+        driver.execute_script("return arguments[0].scrollIntoView(true);", last_scroll_ele)
+        driver.execute_script("window.scrollTo(0, 200);")
+        # last_scroll_ele.click()
     except Exception as error:
         # print(error)
         return 1
     time.sleep(1)
-    total_inventory = len(driver.find_elements_by_xpath('//div[contains(@id, "react-select-")]'))
-    # id = 'react-select-selectBoxFromComponent-option-' + str(total_inventory - 1)
-    # last_scroll_ele = driver.find_element_by_id(id)
-    # driver.execute_script("return arguments[0].scrollIntoView(true);", last_scroll_ele)
-    # last_scroll_ele.click()
+    driver.save_screenshot('screenshots/' + sku + '.png')
     time.sleep(1)
     # add_to_cart_button = driver.find_element_by_class_name('cart-button')
     # actions = ActionChains(driver)
@@ -187,7 +191,7 @@ def clear_checkout(driver):
 def get_total_inventory(driver, num_of_sellers, sku):
     num_of_fbn_sellers = 0
     try:
-        total_inventory = get_inventory_details(driver)
+        total_inventory = get_inventory_details(driver, sku)
         # try:
         try:
             estimator_right = driver.find_element_by_class_name('estimator_right')

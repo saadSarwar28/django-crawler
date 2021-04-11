@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -132,3 +132,18 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'noondata2021@gmail.com'
 EMAIL_HOST_PASSWORD = 'aephyuctalpeyeus'
 EMAIL_RELAY_HOST = 'smtp-relay.gmail.com'
+
+try:
+    os.mkdir('screenshots')
+except FileExistsError:
+    pass
+
+try:
+    os.mkdir('data')
+except FileExistsError:
+    pass
+
+try:
+    os.mkdir('backup')
+except FileExistsError:
+    pass
