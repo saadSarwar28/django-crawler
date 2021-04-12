@@ -192,14 +192,10 @@ def get_total_inventory(driver, num_of_sellers, sku):
     num_of_fbn_sellers = 0
     try:
         total_inventory = get_inventory_details(driver, sku)
-        # try:
-        try:
-            estimator_right = driver.find_element_by_class_name('estimator_right')
-            image = estimator_right.find_element_by_xpath(
-                '//img[@src="https://k.nooncdn.com/s/app/com/noon/images/fulfilment_express-en.png"]')
+        estimator_right = driver.find_element_by_class_name('estimator_right')
+        image_src = estimator_right.find_element_by_tag_name('img').get_attribute('src')
+        if 'fulfilment_express_v2-en' in image_src:
             num_of_fbn_sellers = 1
-        except:
-            pass
         if num_of_sellers > 1:
             num_of_fbn_sellers = 0
             time.sleep(3)
@@ -209,8 +205,7 @@ def get_total_inventory(driver, num_of_sellers, sku):
             time.sleep(3)
             images = driver.find_elements_by_xpath('//div[@direction="row"]/div/img')
             for image in images:
-                if image.get_attribute(
-                        'src') == 'https://k.nooncdn.com/s/app/com/noon/images/fulfilment_express-en.png':
+                if 'fulfilment_express_v2-en' in image.get_attribute('src'):
                     num_of_fbn_sellers = num_of_fbn_sellers + 1
             driver.find_element_by_tag_name('body').click()
             # view_offers = driver.find_elements_by_class_name('selectedOffer')
@@ -232,6 +227,7 @@ def get_total_inventory(driver, num_of_sellers, sku):
             # ).click()
             # time.sleep(2)
             # clear_checkout(driver)
+        print('num of fbn sellers ===> ' + str(num_of_fbn_sellers))
         return {'num_fbn_sellers': num_of_fbn_sellers, 'total_inventory': str(total_inventory)}
     except Exception as error:
         record_inventory_error(driver, error, sku)
