@@ -585,17 +585,31 @@ def calculate_sold_quantities(category_name, country):
             previous_day.save()
             previous_day = day
 
-        total_sold = 0
+        total_sold_week = 0
         if len(previous_days) > 6:
-            for index, day in enumerate(previous_days):
+            previous_seven_days = Day.objects.filter(month=datetime.datetime.now().date().strftime('%B'),
+                                               product=product).order_by('-day_count')[:7]
+            previous_seven_days = reversed(previous_seven_days)
+            for day in previous_seven_days:
                 if day.sold_quantity == -1 or day.sold_quantity == 'error fetching inventory':
                     continue
-                total_sold = total_sold + day.sold_quantity
-                if index == 7:
-                    product.sold_quantity_last_7_day = total_sold
-                if index == 30:
-                    product.sold_quantity_last_30_day = total_sold
-        product.save()
+                else:
+                    total_sold_week = total_sold_week + day.sold_quantity
+            product.sold_quantity_last_7_day = total_sold_week
+            product.save()
+
+        total_sold_a_month = 0
+        if len(previous_days) > 29:
+            previous_thirty_days = Day.objects.filter(month=datetime.datetime.now().date().strftime('%B'),
+                                               product=product).order_by('-day_count')[:30]
+            previous_thirty_days = reversed(previous_thirty_days)
+            for day in previous_thirty_days:
+                if day.sold_quantity == -1 or day.sold_quantity == 'error fetching inventory':
+                    continue
+                else:
+                    total_sold_a_month = total_sold_a_month + day.sold_quantity
+            product.sold_quantity_last_30_day = total_sold_a_month
+            product.save()
 
 
 def write_status_report(country, status_report):
