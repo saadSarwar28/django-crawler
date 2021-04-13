@@ -227,7 +227,7 @@ def get_total_inventory(driver, num_of_sellers, sku):
             # ).click()
             # time.sleep(2)
             # clear_checkout(driver)
-        print('num of fbn sellers ===> ' + str(num_of_fbn_sellers))
+        # print('num of fbn sellers ===> ' + str(num_of_fbn_sellers))
         return {'num_fbn_sellers': num_of_fbn_sellers, 'total_inventory': str(total_inventory)}
     except Exception as error:
         record_inventory_error(driver, error, sku)
