@@ -414,7 +414,10 @@ def start_crawling(country, number_of_pages=4):
             status['pages_scrapped'] = str(x)
             try:
                 driver = initialize_chrome()
-                driver.get(category_url + '?page=' + str(x) + '&limit=55')
+                if '?' in category_url:
+                    driver.get(category_url + '&page=' + str(x) + '&limit=55')
+                else:
+                    driver.get(category_url + '?page=' + str(x) + '&limit=55')
             except Exception as error:
                 print('Error getting url => ' + str(error))
                 driver = initialize_chrome()
