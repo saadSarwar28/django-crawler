@@ -418,7 +418,10 @@ def start_crawling(country, number_of_pages=4):
             except Exception as error:
                 print('Error getting url => ' + str(error))
                 driver = initialize_chrome()
-                driver.get(category_url + '?page=' + str(x) + '&limit=60')
+                if '?' in category_url:
+                    driver.get(category_url + '&page=' + str(x) + '&limit=60')
+                else:
+                    driver.get(category_url + '?page=' + str(x) + '&limit=60')
             time.sleep(2)
             # fetching divs of all products
             try:
