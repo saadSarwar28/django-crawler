@@ -251,7 +251,7 @@ def fetch_products_details(driver, product_sku, product_url, category_name, cate
             break
     brand = driver.find_element_by_xpath('//div[contains(@data-qa, "brand")]').text
     report_day_time = datetime.datetime.now().strftime('%D :: %I:%M %p')
-    buy_box_seller = driver.find_element_by_xpath('//a[@class="storeLink"]').text
+    buy_box_seller = driver.find_elements_by_xpath('//a[@class="storeLink"]')[1].text
     buy_box_price = str(driver.find_element_by_xpath('//div[@class="priceNow"]').text).split(' ')[1]
     # num of sellers is checked by the number of offers text
     try:
