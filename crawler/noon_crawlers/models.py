@@ -65,6 +65,7 @@ class FilesToDelete(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=300, null=True, blank=True)
+    month = models.CharField(max_length=25, default=datetime.datetime.now().date().strftime('%B'))
     country = models.CharField(max_length=200, null=True, blank=True)
     fetch_day_count = models.IntegerField(default=0, null=True, blank=True)
     num_of_pages_scraped = models.IntegerField(default=0)

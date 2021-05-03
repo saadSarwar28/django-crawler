@@ -383,7 +383,12 @@ def enable_browsec(driver):
 
 
 def check_category_already_scraped(category_name, country, fetch_day):
-    if Category.objects.filter(name=category_name, country=country, fetch_day_count=fetch_day).exists():
+    if Category.objects.filter(
+            name=category_name,
+            country=country,
+            month=datetime.datetime.now().date().strftime('%B'),
+            fetch_day_count=fetch_day
+    ).exists():
         return True
     return False
 
