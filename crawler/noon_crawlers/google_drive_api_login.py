@@ -34,7 +34,6 @@ def login_google():
         credentials = service_account.Credentials.from_service_account_file(
             SERVICE_ACCOUNT_FILE, scopes=SCOPES)
         service = build('drive', 'v3', credentials=credentials)
-        return service
         # Call the Drive v3 API
         # results = service.files().list(
         #     pageSize=10, fields="nextPageToken, files(id, name)").execute()
@@ -46,6 +45,7 @@ def login_google():
         #     print('Files:')
         #     for item in items:
         #         print(u'{0} ({1})'.format(item['name'], item['id']))
+        return service
     except Exception as error:
         print(error)
         try:
