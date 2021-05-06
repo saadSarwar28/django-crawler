@@ -540,8 +540,8 @@ def save_product_in_database(data, fetch_day, country):
         product.buy_box_seller = data['buy_box_seller']
         product.buy_box_Price = float(data['buy_box_price'])
         product.total_inventory = data['total_inventory']
-        previous_days = Day.objects.filter(product=product).order_by('-day_count')
         product.save()
+        previous_days = Day.objects.filter(product=product, month=datetime.datetime.now().date().strftime('%B')).order_by('-day_count')
         if len(previous_days) < fetch_day:
             Day(day_count=len(previous_days) + 1, inventory=int(data['total_inventory']), product=product).save()
         else:
@@ -700,10 +700,6 @@ def write_data_to_file(category_name, country):
             if index != 0:
                 inventory.append(days[index].sold_quantity)
             inventory.append(days[index].inventory)
-        # if str(product.sold_quantity_last_day) == 'None':
-        #     sold_quantity_last_day = 'Not applicable yet'
-        # else:
-        #     sold_quantity_last_day = product.sold_quantity_last_day
         if str(product.sold_quantity_last_7_day) == 'None':
             sold_quantity_last_7_day = 'Not applicable yet'
         else:
@@ -726,7 +722,6 @@ def write_data_to_file(category_name, country):
                 product.buy_box_seller,
                 product.buy_box_Price,
                 product.total_inventory,
-                # product.sold_quantity_last_day,
                 sold_quantity_last_7_day,
                 sold_quantity_last_30_day,
             ] + inventory)
