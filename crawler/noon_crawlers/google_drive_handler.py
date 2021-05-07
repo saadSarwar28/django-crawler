@@ -40,7 +40,9 @@ def upload_files_to_google_drive(country):
 def move_files_to_backup_folder(country):
     files_to_move = os.listdir('data/' + country)
     for file in files_to_move:
-        shutil.move('data/' + country + '/' + file, 'backup/' + country)
+        shutil.copy('data/' + country + '/' + file, 'backup/' + country)
+    for file in files_to_move:
+        os.remove('data/' + country + '/' + file)
 
 
 def delete_previous_files_from_google_drive():
