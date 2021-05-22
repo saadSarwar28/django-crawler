@@ -602,7 +602,7 @@ def calculate_sold_quantities(category_name, country):
         total_sold_week = 0
         if len(previous_days) > 6:
             previous_seven_days = Day.objects.filter(month=datetime.datetime.now().date().strftime('%B'),
-                                               product=product).order_by('-day_count')[:7]
+                                               product=product).order_by('-day_count')[:8]
             previous_seven_days = reversed(previous_seven_days)
             for day in previous_seven_days:
                 if day.sold_quantity == -1 or day.sold_quantity == 'error fetching inventory':
