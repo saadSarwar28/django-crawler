@@ -488,7 +488,7 @@ def start_crawling(country, number_of_pages=4):
 def save_remaining_products_days_by_category(category, country, fetch_day):
     products = Product.objects.filter(category=category, country=country)
     for product in products:
-        days = Day.objects.filter(product=product).count()
+        days = Day.objects.filter(product=product, month=datetime.datetime.now().date().strftime('%B')).count()
         if days < fetch_day:
             Day(day_count=fetch_day, sold_quantity=-1, inventory=-1, product=product).save()
 
@@ -595,7 +595,7 @@ def calculate_sold_quantities(category_name, country):
                 previous_day.save()
                 previous_day = day
                 continue
-            previous_day.sold_quantity=previous_day.inventory - day.inventory
+            previous_day.sold_quantity = previous_day.inventory - day.inventory
             previous_day.save()
             previous_day = day
 
@@ -690,8 +690,7 @@ def write_data_to_file(category_name, country):
             data[0].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' Inventory')
         else:
             data[0].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' sold quantity')
-            data[0].append(
-                'day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' inventory')
+            data[0].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' inventory')
 
     for product in products:
         days = Day.objects.filter(
