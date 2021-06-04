@@ -458,11 +458,11 @@ def start_crawling(country, number_of_pages=4):
                             pass
                 log_sku_errors(sku_errors)
             except Exception as error:
-                image_name = category_name + '-' + str(random.random()).split('.')[1][0:8] + '.png'
-                driver.save_screenshot('debug/' + image_name)
-                status['error'] = error
-                status['error_image'] = image_name
                 try:
+                    image_name = category_name + '-' + str(random.random()).split('.')[1][0:8] + '.png'
+                    driver.save_screenshot('debug/' + image_name)
+                    status['error'] = error
+                    status['error_image'] = image_name
                     driver.close()
                 except:
                     pass
