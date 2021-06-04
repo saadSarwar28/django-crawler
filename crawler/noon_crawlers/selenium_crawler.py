@@ -452,10 +452,10 @@ def start_crawling(country, number_of_pages=4):
                             image_name = product_sku + '-' + str(random.random()).split('.')[1][0:8] + '.png'
                             driver.save_screenshot('debug/sku/' + image_name)
                             sku_errors.append({'sku': product_sku, 'error': error, 'error_image': image_name})
+                            driver.close()
+                            driver.switch_to.window(driver.window_handles[0])
                         except Exception as error_:
                             pass
-                        driver.close()
-                        driver.switch_to.window(driver.window_handles[0])
                 log_sku_errors(sku_errors)
             except Exception as error:
                 image_name = category_name + '-' + str(random.random()).split('.')[1][0:8] + '.png'
