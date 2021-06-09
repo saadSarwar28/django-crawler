@@ -445,7 +445,7 @@ def start_crawling(country, number_of_pages=4):
                         data.append(product_details)
                         number_of_sku = number_of_sku + 1
                         # print(number_of_sku)
-                        # print(product_details)
+                        print(product_details)
                     except Exception as error:
                         try:
                             status['error_in_skus'] = product_sku + ' - ' + status['error_in_skus']
