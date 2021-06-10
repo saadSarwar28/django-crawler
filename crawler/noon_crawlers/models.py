@@ -33,6 +33,7 @@ class Product(models.Model):
     # listing_with_incorrect_inventory = models.CharField(max_length=250, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    updated_today = models.BooleanField(default=False)
 
     def __str__(self):
         return self.sku

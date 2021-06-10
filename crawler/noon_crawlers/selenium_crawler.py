@@ -488,8 +488,7 @@ def start_crawling(country, number_of_pages=4):
 def save_remaining_products_days_by_category(category, country, fetch_day):
     products = Product.objects.filter(category=category, country=country)
     for product in products:
-        days = Day.objects.filter(product=product, month=datetime.datetime.now().date().strftime('%B')).count()
-        if days < fetch_day:
+        if not product.updated_today:
             Day(day_count=fetch_day, sold_quantity=-1, inventory=-1, product=product).save()
 
 
@@ -543,6 +542,7 @@ def save_product_in_database(data, fetch_day, country):
         product.buy_box_seller = data['buy_box_seller']
         product.buy_box_Price = float(data['buy_box_price'])
         product.total_inventory = data['total_inventory']
+        product.updated_today = True
         product.save()
         previous_days = Day.objects.filter(product=product).distinct('day').order_by('-day_count')[:30]
         if previous_days[0].day == datetime.date.today():
@@ -564,7 +564,8 @@ def save_product_in_database(data, fetch_day, country):
             no_of_fbn_sellers=int(data['num_of_fbn_sellers']),
             buy_box_seller=data['buy_box_seller'],
             buy_box_Price=float(data['buy_box_price']),
-            total_inventory=data['total_inventory']
+            total_inventory=data['total_inventory'],
+            updated_today=True
         )
         new_product.save()
         for x in range(0, 30):
@@ -722,6 +723,9 @@ def write_data_to_file(category_name, country):
     file_name = 'data/' + country + '/' + category_name + '-' + fetch_days[0].created_at.strftime('%d') + '.xlsx'
     df = pd.DataFrame.from_records(data)
     df.to_excel(file_name)
+    for product in products:
+        product.updated_today = False
+        product.save()
     return file_name
     # with open(file_name, 'w', newline='', encoding='utf-8') as file:
     #     writer = csv.writer(file)
