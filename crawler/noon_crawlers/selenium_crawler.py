@@ -544,12 +544,12 @@ def save_product_in_database(data, fetch_day, country):
         product.total_inventory = data['total_inventory']
         product.updated_today = True
         product.save()
-        previous_days = Day.objects.filter(product=product).distinct('day').order_by('-day_count')[:30]
-        if previous_days[0].day == datetime.date.today():
-            previous_days[0].inventory = int(data['total_inventory'])
-            previous_days[0].save()
+        latest_day = Day.objects.filter(product=product).latest('day')
+        if latest_day.day == datetime.date.today():
+            latest_day.inventory = int(data['total_inventory'])
+            latest_day.save()
         else:
-            Day(day_count=len(previous_days) + 1, inventory=int(data['total_inventory']), product=product).save()
+            Day(day_count=latest_day.day_count + 1, inventory=int(data['total_inventory']), product=product).save()
     else:
         new_product = Product(
             country=country,
