@@ -568,11 +568,13 @@ def save_product_in_database(data, fetch_day, country):
             updated_today=True
         )
         new_product.save()
+        today = datetime.date.today()
         for x in range(0, 30):
             if x == (30):
-                Day(day_count=fetch_day, inventory=int(data['total_inventory']), product=new_product).save()
+                Day(day_count=fetch_day, inventory=int(data['total_inventory']), product=new_product, day=today).save()
             else:
-                Day(day_count=x + 1, sold_quantity=-1, inventory=-1, product=new_product).save()
+                Day(day_count=x + 1, sold_quantity=-1, inventory=-1, product=new_product, day=today).save()
+            today = today - datetime.timedelta(days=1)
 
 
 def calculate_sold_quantities(category_name, country):
@@ -820,7 +822,6 @@ def send_email(country):
 
 
 def delete_extra_days():
-    fetch_day = get_fetch_day_count()
     products = Product.objects.all()
     for product in products:
         today = datetime.date.today()
@@ -830,13 +831,15 @@ def delete_extra_days():
                 for day in days:
                     if day.sold_quantity == -1 and day.inventory == -1:
                         day.delete()
+
+
+def add_extra_days():
+    fetch_day = get_fetch_day_count()
+    products = Product.objects.all()
+    for product in products:
+        today = datetime.date.today()
+        for x in range(0, 30):
             days = Day.objects.filter(product=product, day=today)
-            if len(days) > 1:
-                for index, day in enumerate(days):
-                    if index == 0:
-                        continue
-                    else:
-                        day.delete()
             if len(days) < 1:
-                Day(product=product, sold_quantity=-1, inventory=-1, day_count=fetch_day).save()
+                Day(product=product, sold_quantity=-1, inventory=-1, day_count=fetch_day, day=today).save()
             today = today - datetime.timedelta(days=1)

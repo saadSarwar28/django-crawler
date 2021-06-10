@@ -103,3 +103,8 @@ def remove_screenshots(request):
 def delete_extra_days_(request):
     delete_extra_days()
     return HttpResponse()
+
+
+def add_remaining_days(request):
+    add_extra_days()
+    return HttpResponse()
