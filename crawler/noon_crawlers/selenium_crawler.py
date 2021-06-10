@@ -655,7 +655,7 @@ def get_fetch_day_count():
 
 def write_data_to_file(category_name, country):
     products = Product.objects.filter(category=category_name, country=country)
-    fetch_days = FetchDay.objects.all().order_by('-created_at')[:30]
+    fetch_days = FetchDay.objects.all().order_by('-created_at')[:31]
     total_fetched_days = len(fetch_days)
     data = []
     data.append(
@@ -686,7 +686,7 @@ def write_data_to_file(category_name, country):
             data[0].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' inventory')
 
     for product in products:
-        days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:30]
+        days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:31]
         inventory = []
         for index in range(0, len(days)):
             if index != 0:
