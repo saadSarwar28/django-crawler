@@ -98,3 +98,8 @@ def remove_screenshots(request):
     for file in files:
         os.remove('screenshots/' + file)
     return HttpResponse()
+
+
+def delete_extra_days_(request):
+    delete_extra_days()
+    return HttpResponse()

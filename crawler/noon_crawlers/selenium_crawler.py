@@ -445,7 +445,7 @@ def start_crawling(country, number_of_pages=4):
                         data.append(product_details)
                         number_of_sku = number_of_sku + 1
                         # print(number_of_sku)
-                        print(product_details)
+                        # print(product_details)
                     except Exception as error:
                         try:
                             status['error_in_skus'] = product_sku + ' - ' + status['error_in_skus']
@@ -497,7 +497,7 @@ def save_remaining_products_days():
     fetch_day = get_fetch_day_count()
     products = Product.objects.all()
     for product in products:
-        days = Day.objects.filter(product=product).count()
+        days = Day.objects.filter(product=product, month=datetime.datetime.now().date().strftime('%B')).count()
         if days < fetch_day:
             Day(day_count=fetch_day, sold_quantity=-1, inventory=-1, product=product).save()
 
@@ -544,12 +544,12 @@ def save_product_in_database(data, fetch_day, country):
         product.buy_box_Price = float(data['buy_box_price'])
         product.total_inventory = data['total_inventory']
         product.save()
-        previous_days = Day.objects.filter(product=product, month=datetime.datetime.now().date().strftime('%B')).order_by('-day_count')
-        if len(previous_days) < fetch_day:
-            Day(day_count=len(previous_days) + 1, inventory=int(data['total_inventory']), product=product).save()
-        else:
+        previous_days = Day.objects.filter(product=product).distinct('day').order_by('-day_count')[:30]
+        if previous_days[0].day == datetime.date.today():
             previous_days[0].inventory = int(data['total_inventory'])
             previous_days[0].save()
+        else:
+            Day(day_count=len(previous_days) + 1, inventory=int(data['total_inventory']), product=product).save()
     else:
         new_product = Product(
             country=country,
@@ -567,8 +567,8 @@ def save_product_in_database(data, fetch_day, country):
             total_inventory=data['total_inventory']
         )
         new_product.save()
-        for x in range(0, fetch_day):
-            if x == (fetch_day - 1):
+        for x in range(0, 30):
+            if x == (30):
                 Day(day_count=fetch_day, inventory=int(data['total_inventory']), product=new_product).save()
             else:
                 Day(day_count=x + 1, sold_quantity=-1, inventory=-1, product=new_product).save()
@@ -655,7 +655,7 @@ def get_fetch_day_count():
 
 def write_data_to_file(category_name, country):
     products = Product.objects.filter(category=category_name, country=country)
-    fetch_days = FetchDay.objects.filter(month=datetime.datetime.now().date().strftime('%B')).order_by('-created_at')
+    fetch_days = FetchDay.objects.all().order_by('-created_at')[:30]
     total_fetched_days = len(fetch_days)
     data = []
     data.append(
@@ -686,10 +686,7 @@ def write_data_to_file(category_name, country):
             data[0].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' inventory')
 
     for product in products:
-        days = Day.objects.filter(
-            product=product,
-            month=datetime.datetime.now().date().strftime('%B')
-        ).order_by('-day_count')
+        days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:30]
         inventory = []
         for index in range(0, len(days)):
             if index != 0:
@@ -816,3 +813,26 @@ def send_email(country):
         debug_file.write('Error details => ' + str(error) + '\n')
     debug_file.write(' ======================== \n')
     debug_file.close()
+
+
+def delete_extra_days():
+    fetch_day = get_fetch_day_count()
+    products = Product.objects.all()
+    for product in products:
+        today = datetime.date.today()
+        for x in range(0, 30):
+            days = Day.objects.filter(product=product, day=today)
+            if len(days) > 1:
+                for day in days:
+                    if day.sold_quantity == -1 and day.inventory == -1:
+                        day.delete()
+            days = Day.objects.filter(product=product, day=today)
+            if len(days) > 1:
+                for index, day in enumerate(days):
+                    if index == 0:
+                        continue
+                    else:
+                        day.delete()
+            if len(days) < 1:
+                Day(product=product, sold_quantity=-1, inventory=-1, day_count=fetch_day).save()
+            today = today - datetime.timedelta(days=1)
