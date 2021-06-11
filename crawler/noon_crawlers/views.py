@@ -35,7 +35,7 @@ def save_remaining_products(request):
 
 
 def save_remaining_products_by_category(request):
-    save_remaining_products_days_by_category('Tablet Accessories', fetch_day=1)
+    save_remaining_products_days_by_category('Tablet Accessories', country='UAE', fetch_day=1)
     return HttpResponse()
 
 
