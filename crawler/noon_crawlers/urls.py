@@ -21,4 +21,5 @@ urlpatterns = [
     path('get/fetch/day', views.get_fetch_day, name='get fetch days count'),
     path('correct', views.correction_countries, name='country correction'),
     path('rectify/sold/quantity', views.rectify_sold_quantities, name='sold quantities calculation'),
+    path('rectify/all/sold/quantity', views.rectify_all_sold_quantities, name='sold quantities calculation'),
 ]

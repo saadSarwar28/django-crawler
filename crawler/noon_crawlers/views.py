@@ -93,6 +93,13 @@ def rectify_sold_quantities(request):
     return HttpResponse()
 
 
+def rectify_all_sold_quantities(request):
+    categories = Product.objects.values('category', 'country').distinct()
+    for category in categories:
+        calculate_all_sold_quantities(category['category'], category['country'])
+    return HttpResponse()
+
+
 def remove_screenshots(request):
     files = os.listdir('screenshots')
     for file in files:

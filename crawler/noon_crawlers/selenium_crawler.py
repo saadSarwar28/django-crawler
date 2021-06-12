@@ -574,8 +574,8 @@ def save_product_in_database(data, fetch_day, country):
         )
         new_product.save()
         today = datetime.date.today()
-        for x in range(0, 30):
-            if x == (30):
+        for x in range(31):
+            if x == (0):
                 Day(day_count=fetch_day, inventory=int(data['total_inventory']), product=new_product, day=today).save()
             else:
                 Day(day_count=x + 1, sold_quantity=-1, inventory=-1, product=new_product, day=today).save()
@@ -585,8 +585,56 @@ def save_product_in_database(data, fetch_day, country):
 def calculate_sold_quantities(category_name, country):
     products = Product.objects.filter(category=category_name, country=country)
     for product in products:
-        previous_days = Day.objects.filter(month=datetime.datetime.now().date().strftime('%B'),
-                                           product=product).order_by('day_count')
+        previous_days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:2]
+        latest_day = previous_days[0]
+        previous_day = previous_days[1]
+
+        if not previous_day.inventory == -1 and not latest_day.inventory == -1:
+            if previous_day.inventory <= latest_day.inventory:
+                previous_day.sold_quantity = 0
+                previous_day.save()
+            else:
+                previous_day.sold_quantity = previous_day.inventory - latest_day.inventory
+                previous_day.save()
+
+        total_sold_week = 0
+        previous_days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:8]
+        consecutive_days = True
+        for index, day in enumerate(previous_days):
+            if index == 0:
+                continue
+            if day.sold_quantity == -1:
+                consecutive_days = False
+                break
+            else:
+                total_sold_week = total_sold_week + day.sold_quantity
+        if consecutive_days:
+            product.sold_quantity_last_7_day = total_sold_week
+        else:
+            product.sold_quantity_last_7_day = -1
+
+        total_sold_a_month = 0
+        consecutive_days = True
+        previous_days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:31]
+        for index, day in enumerate(previous_days):
+            if index == 0:
+                continue
+            if day.sold_quantity == -1:
+                consecutive_days = False
+                break
+            else:
+                total_sold_a_month = total_sold_a_month + day.sold_quantity
+        if consecutive_days:
+            product.sold_quantity_last_30_day = total_sold_a_month
+        else:
+            product.sold_quantity_last_30_day = -1
+        product.save()
+
+
+def calculate_all_sold_quantities(category_name, country):
+    products = Product.objects.filter(category=category_name, country=country)
+    for product in products:
+        previous_days = Day.objects.filter(product=product).distinct('day').order_by('day')
         previous_day = None
         for index, day in enumerate(previous_days):
             if index == 0:
@@ -608,22 +656,36 @@ def calculate_sold_quantities(category_name, country):
             previous_day = day
 
         total_sold_week = 0
-        total_sold_a_month = 0
-        previous_days = Day.objects.filter(product=product).order_by('day')
-        previous_days = reversed(previous_days)
+        previous_days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:8]
+        consecutive_days = True
         for index, day in enumerate(previous_days):
-            if index < 7:
-                if day.sold_quantity == -1 or day.sold_quantity == 'error fetching inventory':
-                    pass
-                else:
-                    total_sold_week = total_sold_week + day.sold_quantity
-            if index < 31:
-                if day.sold_quantity == -1 or day.sold_quantity == 'error fetching inventory':
-                    pass
-                else:
-                    total_sold_a_month = total_sold_a_month + day.sold_quantity
-        product.sold_quantity_last_7_day = total_sold_week
-        product.sold_quantity_last_30_day = total_sold_a_month
+            if index == 0:
+                continue
+            if day.sold_quantity == -1:
+                consecutive_days = False
+                break
+            else:
+                total_sold_week = total_sold_week + day.sold_quantity
+        if consecutive_days:
+            product.sold_quantity_last_7_day = total_sold_week
+        else:
+            product.sold_quantity_last_7_day = -1
+
+        total_sold_a_month = 0
+        consecutive_days = True
+        previous_days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:31]
+        for index, day in enumerate(previous_days):
+            if index == 0:
+                continue
+            if day.sold_quantity == -1:
+                consecutive_days = False
+                break
+            else:
+                total_sold_a_month = total_sold_a_month + day.sold_quantity
+        if consecutive_days:
+            product.sold_quantity_last_30_day = total_sold_a_month
+        else:
+            product.sold_quantity_last_30_day = -1
         product.save()
 
 
@@ -700,11 +762,11 @@ def write_data_to_file(category_name, country):
             if index != 0:
                 inventory.append(days[index].sold_quantity)
             inventory.append(days[index].inventory)
-        if str(product.sold_quantity_last_7_day) == 'None':
+        if product.sold_quantity_last_7_day == -1:
             sold_quantity_last_7_day = 'Not applicable yet'
         else:
             sold_quantity_last_7_day = product.sold_quantity_last_7_day
-        if str(product.sold_quantity_last_30_day) == 'None':
+        if product.sold_quantity_last_30_day == -1:
             sold_quantity_last_30_day = 'Not applicable yet'
         else:
             sold_quantity_last_30_day = product.sold_quantity_last_30_day

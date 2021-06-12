@@ -42,7 +42,7 @@ class Product(models.Model):
 class Day(models.Model):
     day_count = models.IntegerField(default=0)
     month = models.CharField(max_length=25, default=datetime.datetime.now().date().strftime('%B'))
-    day = models.DateField(auto_now_add=True, null=True, blank=True)
+    day = models.DateField(null=True, blank=True)
     sold_quantity = models.IntegerField(default=0, null=True, blank=True)
     inventory = models.IntegerField(default=0)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
