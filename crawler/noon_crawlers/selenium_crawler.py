@@ -488,9 +488,15 @@ def start_crawling(country, number_of_pages=4):
 def save_remaining_products_days_by_category(category, country, fetch_day):
     products = Product.objects.filter(category=category, country=country)
     for product in products:
-        days = Day.objects.filter(product=product).order_by('-day')
-        if days[0].day < datetime.date.today():
-            Day(day_count=fetch_day, sold_quantity=-1, inventory=-1, product=product).save()
+        latest_day = Day.objects.filter(product=product).latest('day')
+        if latest_day.day < datetime.date.today():
+            Day(
+                product=product,
+                day_count=fetch_day,
+                sold_quantity=-1,
+                inventory=-1,
+                day=datetime.date.today(),
+            ).save()
 
 
 def save_remaining_products_days():
@@ -554,7 +560,12 @@ def save_product_in_database(data, fetch_day, country):
             latest_day.inventory = int(data['total_inventory'])
             latest_day.save()
         else:
-            Day(day_count=latest_day.day_count + 1, inventory=int(data['total_inventory']), product=product).save()
+            Day(
+                product=product,
+                day_count=latest_day.day_count + 1,
+                inventory=int(data['total_inventory']),
+                day=datetime.date.today(),
+            ).save()
     else:
         new_product = Product(
             country=country,
