@@ -420,9 +420,9 @@ def start_crawling(country, number_of_pages=4):
             try:
                 driver = initialize_chrome()
                 if '?' in category_url:
-                    driver.get(category_url + '&page=' + str(x) + '&limit=55')
+                    driver.get(category_url + '&page=' + str(x) + '&limit=60')
                 else:
-                    driver.get(category_url + '?page=' + str(x) + '&limit=55')
+                    driver.get(category_url + '?page=' + str(x) + '&limit=60')
             except Exception as error:
                 print('Error getting url => ' + str(error))
                 driver = initialize_chrome()
@@ -531,7 +531,11 @@ def save_bandwidth_status(country='', start=False, id=None):
 
 def save_product_in_database(data, fetch_day, country):
     if Product.objects.filter(sku=str(data['product_sku']).strip(), country=country).exists():
-        product = Product.objects.get(sku=data['product_sku'], country=country)
+        try:
+            product = Product.objects.get(sku=str(data['product_sku']).strip(), country=country)
+        except Exception:
+            product = Product.objects.filter(sku=str(data['product_sku']).strip(), country=country)
+            product = product[0]
         product.category = data['category_name']
         product.product_title = data['product_name']
         product.listing_url = data['product_url']
