@@ -14,6 +14,7 @@ urlpatterns = [
     # test functions
     path('delete/extra/days', views.delete_extra_days_, name='delete extra days'),
     path('add/extra/days', views.add_remaining_days, name='delete extra days'),
+    path('add/todays/missing/days', views.create_todays_missing_days, name='delete extra days'),
     path('save/remaining/days/by/category', views.save_remaining_products_by_category, name='save remaining products days'),
     path('write', views.write_data, name='write data to files'),
     path('send/email', views.send_email_gmail, name='send email'),

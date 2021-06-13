@@ -503,9 +503,9 @@ def save_remaining_products_days():
     fetch_day = get_fetch_day_count()
     products = Product.objects.all()
     for product in products:
-        days = Day.objects.filter(product=product, month=datetime.datetime.now().date().strftime('%B')).count()
-        if days < fetch_day:
-            Day(day_count=fetch_day, sold_quantity=-1, inventory=-1, product=product).save()
+        days = Day.objects.filter(product=product, day=datetime.date.today())
+        if len(days) < 1:
+            Day(day_count=fetch_day, sold_quantity=-1, inventory=-1, product=product, day=datetime.date.today()).save()
 
 
 def save_bandwidth_status(country='', start=False, id=None):
@@ -654,8 +654,7 @@ def calculate_all_sold_quantities(category_name, country):
             if index == 0:
                 previous_day = day
                 continue
-            if (day.inventory == 'error fetching inventory' or day.inventory == -1) or (
-                    previous_day.inventory == 'error fetching inventory' or previous_day.inventory == -1):
+            if (day.inventory == -1) or (previous_day.inventory == -1):
                 previous_day.sold_quantity = -1
                 previous_day.save()
                 previous_day = day

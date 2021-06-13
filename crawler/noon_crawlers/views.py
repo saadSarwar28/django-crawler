@@ -114,6 +114,11 @@ def delete_extra_days_(request):
     return HttpResponse()
 
 
+def create_todays_missing_days(request):
+    save_remaining_products_days()
+    return HttpResponse()
+
+
 def add_remaining_days(request):
     add_extra_days()
     return HttpResponse()
