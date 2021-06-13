@@ -597,20 +597,16 @@ def calculate_sold_quantities(category_name, country):
     products = Product.objects.filter(category=category_name, country=country)
     for product in products:
         previous_days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:2]
-        try:
+        if len(previous_days) > 1:
             latest_day = previous_days[0]
             previous_day = previous_days[1]
-        except IndexError:
-            print('Index error for product : ' + str(product.sku))
-            continue
-
-        if not previous_day.inventory == -1 and not latest_day.inventory == -1:
-            if previous_day.inventory <= latest_day.inventory:
-                previous_day.sold_quantity = 0
-                previous_day.save()
-            else:
-                previous_day.sold_quantity = previous_day.inventory - latest_day.inventory
-                previous_day.save()
+            if not previous_day.inventory == -1 and not latest_day.inventory == -1:
+                if previous_day.inventory <= latest_day.inventory:
+                    previous_day.sold_quantity = 0
+                    previous_day.save()
+                else:
+                    previous_day.sold_quantity = previous_day.inventory - latest_day.inventory
+                    previous_day.save()
 
         total_sold_week = 0
         previous_days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:8]
@@ -623,7 +619,7 @@ def calculate_sold_quantities(category_name, country):
                 break
             else:
                 total_sold_week = total_sold_week + day.sold_quantity
-        if consecutive_days:
+        if consecutive_days and len(previous_days) > 7:
             product.sold_quantity_last_7_day = total_sold_week
         else:
             product.sold_quantity_last_7_day = -1
@@ -639,7 +635,7 @@ def calculate_sold_quantities(category_name, country):
                 break
             else:
                 total_sold_a_month = total_sold_a_month + day.sold_quantity
-        if consecutive_days:
+        if consecutive_days and len(previous_days) > 30:
             product.sold_quantity_last_30_day = total_sold_a_month
         else:
             product.sold_quantity_last_30_day = -1
@@ -681,7 +677,7 @@ def calculate_all_sold_quantities(category_name, country):
                 break
             else:
                 total_sold_week = total_sold_week + day.sold_quantity
-        if consecutive_days:
+        if consecutive_days and len(previous_days) > 7:
             product.sold_quantity_last_7_day = total_sold_week
         else:
             product.sold_quantity_last_7_day = -1
@@ -697,7 +693,7 @@ def calculate_all_sold_quantities(category_name, country):
                 break
             else:
                 total_sold_a_month = total_sold_a_month + day.sold_quantity
-        if consecutive_days:
+        if consecutive_days and len(previous_days) > 30:
             product.sold_quantity_last_30_day = total_sold_a_month
         else:
             product.sold_quantity_last_30_day = -1
