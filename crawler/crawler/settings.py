@@ -80,7 +80,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'noon',
         'USER': 'postgres',
-        'PASSWORD': 'Jamali123*',
+        'PASSWORD': 'postgres',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
@@ -111,7 +111,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'GMT+8'
 
 USE_I18N = True
 
@@ -138,6 +138,12 @@ EMAIL_RELAY_HOST = 'smtp-relay.gmail.com'
 
 try:
     os.mkdir('screenshots')
+except FileExistsError:
+    pass
+
+
+try:
+    os.mkdir('screenshots-backup')
 except FileExistsError:
     pass
 
