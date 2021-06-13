@@ -597,8 +597,12 @@ def calculate_sold_quantities(category_name, country):
     products = Product.objects.filter(category=category_name, country=country)
     for product in products:
         previous_days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:2]
-        latest_day = previous_days[0]
-        previous_day = previous_days[1]
+        try:
+            latest_day = previous_days[0]
+            previous_day = previous_days[1]
+        except IndexError:
+            print('Index error for product : ' + str(product.sku))
+            continue
 
         if not previous_day.inventory == -1 and not latest_day.inventory == -1:
             if previous_day.inventory <= latest_day.inventory:
