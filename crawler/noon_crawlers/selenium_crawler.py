@@ -607,6 +607,9 @@ def calculate_sold_quantities(category_name, country):
                 else:
                     previous_day.sold_quantity = previous_day.inventory - latest_day.inventory
                     previous_day.save()
+            else:
+                previous_day.sold_quantity = -1
+                previous_day.save()
 
         total_sold_week = 0
         previous_days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:8]
