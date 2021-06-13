@@ -10,7 +10,7 @@ urlpatterns = [
     path('delete', views.delete_files_from_google, name='delete files from google drive'),
     path('upload', views.upload_files_to_google, name='upload files to google drive'),
     path('move', views.move_files_to_backup, name='move files to backup folder'),
-    path('remove/screenshots', views.remove_screenshots, name='remove screenshots'),
+    path('move/screenshots', views.move_screenshots_to_backup, name='remove screenshots'),
     # test functions
     path('delete/extra/days', views.delete_extra_days_, name='delete extra days'),
     path('add/extra/days', views.add_remaining_days, name='delete extra days'),

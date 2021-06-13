@@ -100,9 +100,11 @@ def rectify_all_sold_quantities(request):
     return HttpResponse()
 
 
-def remove_screenshots(request):
-    files = os.listdir('screenshots')
-    for file in files:
+def move_screenshots_to_backup(request):
+    files_to_move = os.listdir('screenshots')
+    for file in files_to_move:
+        shutil.copy('screenshots/' + file, 'screenshots-backup/' + file)
+    for file in files_to_move:
         os.remove('screenshots/' + file)
     return HttpResponse()
 

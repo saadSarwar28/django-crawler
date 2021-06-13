@@ -1,0 +1,1 @@
+for /f "tokens=5" %%i in ('netstat -aon ^| findstr 8000') DO taskkill /f /pid %%i
