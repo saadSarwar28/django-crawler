@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from .selenium_crawler import *
 from .google_drive_handler import *
-
+import datetime
 
 # Create your views here.
 
@@ -102,8 +102,13 @@ def rectify_all_sold_quantities(request):
 
 def move_screenshots_to_backup(request):
     files_to_move = os.listdir('screenshots')
+    folder_name = datetime.date.today().strftime('%d-%m-%y')
+    try:
+        os.makedirs('screenshots-backup/' + folder_name)
+    except FileExistsError:
+        pass
     for file in files_to_move:
-        shutil.copy('screenshots/' + file, 'screenshots-backup/' + file)
+        shutil.copy('screenshots/' + file, 'screenshots-backup/' + folder_name + '/' + file)
     for file in files_to_move:
         os.remove('screenshots/' + file)
     return HttpResponse()
