@@ -727,7 +727,7 @@ def create_fetch_day():
         FetchDay(
             month=datetime.datetime.now().date().strftime('%B'),
             day=1,
-            created_at=datetime.datetime.now().date()
+            created_at=datetime.date.today()
         ).save()
         return 1
     else:
@@ -735,7 +735,7 @@ def create_fetch_day():
         FetchDay(
             month=datetime.datetime.now().date().strftime('%B'),
             day=fetch_day,
-            created_at=datetime.datetime.now().date()
+            created_at=datetime.date.today()
         ).save()
         return fetch_day
 
