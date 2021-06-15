@@ -8,7 +8,7 @@ from django.db import models
 class FetchDay(models.Model):
     month = models.CharField(max_length=100, null=True, blank=True)
     day = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 

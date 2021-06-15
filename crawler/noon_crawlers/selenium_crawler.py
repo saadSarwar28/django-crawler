@@ -724,11 +724,19 @@ def write_status_report(country, status_report):
 def create_fetch_day():
     days = FetchDay.objects.filter(month=datetime.datetime.now().date().strftime('%B'))
     if len(days) < 1:
-        FetchDay(month=datetime.datetime.now().date().strftime('%B'), day=1).save()
+        FetchDay(
+            month=datetime.datetime.now().date().strftime('%B'),
+            day=1,
+            created_at=datetime.datetime.now().date()
+        ).save()
         return 1
     else:
         fetch_day = len(days) + 1
-        FetchDay(month=datetime.datetime.now().date().strftime('%B'), day=fetch_day).save()
+        FetchDay(
+            month=datetime.datetime.now().date().strftime('%B'),
+            day=fetch_day,
+            created_at=datetime.datetime.now().date()
+        ).save()
         return fetch_day
 
 
