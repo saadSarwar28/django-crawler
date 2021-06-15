@@ -150,7 +150,7 @@ def get_inventory_details(driver, sku):
         # print(error)
         return 1
     time.sleep(1)
-    driver.save_screenshot('screenshots/' + sku + '.png')
+    driver.save_screenshot('screenshots/' + sku + '_' + datetime.datetime.now().strftime('%H-%M-%S') + '.png')
     time.sleep(1)
     # add_to_cart_button = driver.find_element_by_class_name('cart-button')
     # actions = ActionChains(driver)
