@@ -771,10 +771,10 @@ def write_data_to_file(category_name, country):
 
     for index in range(0, total_fetched_days):
         if index == 0:
-            data[0].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' Inventory')
+            data[0].append('day ' + fetch_days[index].created_at.strftime('%m/%d') + ' Inventory')
         else:
-            data[0].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' sold quantity')
-            data[0].append('day ' + fetch_days[index].created_at.date().strftime('%m/%d') + ' inventory')
+            data[0].append('day ' + fetch_days[index].created_at.strftime('%m/%d') + ' sold quantity')
+            data[0].append('day ' + fetch_days[index].created_at.strftime('%m/%d') + ' inventory')
 
     for product in products:
         days = Day.objects.filter(product=product).distinct('day').order_by('-day')[:31]
