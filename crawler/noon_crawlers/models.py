@@ -72,6 +72,6 @@ class Category(models.Model):
     num_of_pages_scraped = models.IntegerField(default=0)
     num_of_skus = models.IntegerField(default=0)
     fully_scraped = models.BooleanField(default=False)
-    created_at = models.DateField(auto_now_add=True)
+    created_at = models.DateField(default=datetime.date.today())
     updated_at = models.DateField(auto_now=True)
 

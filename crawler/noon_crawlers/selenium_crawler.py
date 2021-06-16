@@ -387,7 +387,7 @@ def check_category_already_scraped(category_name, country, fetch_day):
             name=category_name,
             country=country,
             month=datetime.datetime.now().date().strftime('%B'),
-            fetch_day_count=fetch_day
+            created_at=datetime.date.today(),
     ).exists():
         return True
     return False
